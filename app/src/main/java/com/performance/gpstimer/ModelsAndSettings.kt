@@ -14,20 +14,16 @@ import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-enum class TestMode(
-    val title: String,
-    val subtitle: String,
-    val isStandingStart: Boolean
-) {
-    DRAG_TREE("DRAG STRIP TREE", "Full NHRA Lighting Tree + R/T + 1/4 Mile Slip", true),
+enum class TestMode(val title: String, val subtitle: String, val isStandingStart: Boolean) {
+    DRAG_TREE("DRAG STRIP TREE", "NHRA Pro/Sportsman Tree + R/T + 1/4 Mile Slip", true),
     QUARTER_MILE("1/4 MILE DRAG", "Standing 1/4 Mile (402.3m) with full splits", true),
     HALF_MILE("1/2 MILE AIRSTRIP", "Standing 1/2 Mile (804.7m) + 1/4 Mile splits", true),
     ONE_MILE("1 MILE TOP SPEED", "Standing 1 Mile (1609.3m) pass", true),
     ACCEL_0_100("0 - 100 / 0 - 60", "Standing sprint to target speed", true),
     ROLL_100_200("100 - 200 / 60 - 130", "Flying roll acceleration timer", false),
     BRAKE_100_0("100 - 0 BRAKING", "Deceleration time, stopping distance & peak G", false),
-    CUSTOM_SPEED("CUSTOM SPEED RUN", "User-defined start & target speeds", false),
-    TRACK_CIRCUIT("TRACK & OBD GAUGES", "GPS sector pins, lap delta & OBD-II cockpit", false)
+    CUSTOM_SPEED("CUSTOM SPEED RUN", "Set custom start & end speeds right on screen", false),
+    TRACK_CIRCUIT("TRACK & OBD GAUGES", "GPS sector pins, lap delta & OBD-II gauges", false)
 }
 
 enum class TreeType(val label: String, val amberIntervalMs: Long, val isSimultaneous: Boolean) {
@@ -36,43 +32,47 @@ enum class TreeType(val label: String, val amberIntervalMs: Long, val isSimultan
     PRO_500("PRO TREE (.500s)", 500L, true)
 }
 
-enum class TreeStageState {
-    OFF, PRE_STAGE, STAGE, AMBER_1, AMBER_2, AMBER_3, GREEN, RED_FOUL
-}
+enum class TreeStageState { OFF, PRE_STAGE, STAGE, AMBER_1, AMBER_2, AMBER_3, GREEN, RED_FOUL }
 
 enum class RunStatus(val label: String) {
-    IDLE("DISARMED"),
-    WAITING_FOR_GPS("ACQUIRING GNSS..."),
-    STAGED_STOP("STAGED - READY TO LAUNCH"),
-    TREE_COUNTDOWN("TREE ACTIVE - WATCH LIGHTS"),
+    IDLE("READY / DISARMED"),
+    STAGED_STOP("STAGED - LAUNCH WHEN READY"),
+    TREE_COUNTDOWN("WATCH THE TREE..."),
     STAGED_ROLL("ARMED - CRUISE BELOW START SPEED"),
-    STAGED_BRAKE("ARMED - CRUISE ABOVE TARGET SPEED"),
+    STAGED_BRAKE("ARMED - ACCELERATE ABOVE BRAKE SPEED"),
     RUNNING("TIMING IN PROGRESS"),
-    BRAKING_ACTIVE("BRAKING TEST IN PROGRESS"),
-    TRACK_ACTIVE("TRACK TELEMETRY & LAP TIMING"),
-    COMPLETED("RUN COMPLETE")
+    BRAKING_ACTIVE("BRAKING TEST ACTIVE"),
+    TRACK_ACTIVE("LAP & SECTOR TIMING ACTIVE"),
+    COMPLETED("PASS COMPLETED")
 }
 
 enum class ThemeMode(val label: String) {
     OLED_DARK("OLED Motorsport Dark"),
     SLATE_DARK("Carbon Slate Dark"),
-    DAYLIGHT_LIGHT("High-Contrast Daylight")
+    DAYLIGHT_LIGHT("Daylight High-Contrast")
 }
 
 enum class OrientationPref(val label: String) {
     AUTO("Auto-Rotate"),
-    LOCK_LANDSCAPE_IN_DRAG_TRACK("Landscape Lock in Drag & Track"),
+    LOCK_LANDSCAPE_IN_DRAG_TRACK("Landscape in Drag & Track"),
     ALWAYS_LANDSCAPE("Always Landscape"),
     ALWAYS_PORTRAIT("Always Portrait")
 }
 
 enum class GaugeLayoutStyle(val label: String) {
-    PRO_ANALOG_COCKPIT("Pro Analog Dials + G-Ball"),
-    SECTOR_DELTA_RACER("Big Lap Timer + Shift Bar"),
-    OBD_MULTI_GRID("6-Channel OBD Telemetry Grid")
+    PRO_ANALOG_COCKPIT("Analog Dials + G-Ball"),
+    SECTOR_DELTA_RACER("Lap Delta + Shift Bar"),
+    OBD_MULTI_GRID("6-Channel OBD Grid")
+}
+
+enum class GnssSourceType(val label: String) {
+    INTERNAL_GPS("Phone Internal GNSS"),
+    USB_CABLE_GNSS("USB Cable GNSS (OTG Serial)"),
+    BLUETOOTH_GNSS("Bluetooth External GNSS")
 }
 
 data class AppSettings(
+    val onboardingCompleted: Boolean = false,
     val useMph: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.OLED_DARK,
     val rolloutEnabled: Boolean = true,
@@ -85,8 +85,13 @@ data class AppSettings(
     val redlineRpm: Int = 7000,
     val activeVehicleId: Long = 1L,
     val activeTrackId: Long = 1L,
+    val gnssSourceType: GnssSourceType = GnssSourceType.INTERNAL_GPS,
     val btObdAddress: String = "",
-    val btGnssAddress: String = ""
+    val btObdName: String = "",
+    val gnssDeviceId: String = "",
+    val gnssDeviceName: String = "",
+    val historyObdDevices: Set<String> = emptySet(),
+    val historyGnssDevices: Set<String> = emptySet()
 )
 
 data class WeatherSnapshot(
@@ -95,22 +100,20 @@ data class WeatherSnapshot(
     val humidityPct: Double = 45.0,
     val altitudeM: Double = 15.0,
     val densityAltitudeFt: Int = 450,
-    val saeCorrectionFactor: Double = 1.000,
     val isLive: Boolean = false
 )
 
 data class ObdLiveMetrics(
     val connected: Boolean = false,
-    val deviceName: String = "Disconnected",
+    val deviceName: String = "Not Connected",
     val rpm: Int = 0,
     val obdSpeedKmh: Int = 0,
-    val coolantTempC: Int = 0,
-    val intakeTempC: Int = 0,
+    val coolantTempC: Int = 85,
+    val intakeTempC: Int = 28,
     val throttlePct: Double = 0.0,
     val mapKpa: Int = 101,
     val boostPsi: Double = 0.0,
-    val timingAdvanceDeg: Double = 0.0,
-    val batteryVolts: Double = 12.6
+    val batteryVolts: Double = 13.8
 )
 
 data class TelemetryPoint(
@@ -129,7 +132,7 @@ data class TelemetryPoint(
 object TelemetrySerializer {
     fun encodeTrace(points: List<TelemetryPoint>): String {
         val arr = JSONArray()
-        val step = if (points.size > 600) (points.size / 600).coerceAtLeast(1) else 1
+        val step = if (points.size > 500) (points.size / 500).coerceAtLeast(1) else 1
         for (i in points.indices step step) {
   val p = points[i]
   val obj = JSONObject()
@@ -180,6 +183,8 @@ object UnitConverter {
     const val M_TO_FT = 3.280839895
 
     fun speed(kmh: Double, useMph: Boolean): Double = if (useMph) kmh * KMH_TO_MPH else kmh
+    fun toKmh(valueInCurrentUnit: Double, useMph: Boolean): Double =
+        if (useMph) valueInCurrentUnit / KMH_TO_MPH else valueInCurrentUnit
     fun speedUnit(useMph: Boolean): String = if (useMph) "MPH" else "KM/H"
     fun dist(meters: Double, useMph: Boolean): Double = if (useMph) meters * M_TO_FT else meters
     fun distUnit(useMph: Boolean): String = if (useMph) "ft" else "m"
@@ -196,60 +201,37 @@ object UnitConverter {
 }
 
 object WeatherCalculator {
-    fun computeDensityAltitude(
-        tempC: Double,
-        pressureHpa: Double,
-        humidityPct: Double,
-        altitudeM: Double
-    ): WeatherSnapshot {
+    fun computeDensityAltitude(tempC: Double, pressureHpa: Double, humidityPct: Double, altitudeM: Double): WeatherSnapshot {
         val tempK = tempC + 273.15
         val es = 6.1078 * 10.0.pow((7.5 * tempC) / (tempC + 237.3))
         val vaporPressure = es * (humidityPct.coerceIn(0.0, 100.0) / 100.0)
         val dryPressure = (pressureHpa - vaporPressure).coerceAtLeast(100.0)
-
-        val rDry = 287.058
-        val rVapor = 461.495
-        val rho = (dryPressure * 100.0) / (rDry * tempK) + (vaporPressure * 100.0) / (rVapor * tempK)
-
+        val rho = (dryPressure * 100.0) / (287.058 * tempK) + (vaporPressure * 100.0) / (461.495 * tempK)
         val densityRatio = (rho / 1.225).coerceIn(0.5, 1.3)
         val daMeters = 44330.0 * (1.0 - densityRatio.pow(1.0 / 4.25588))
         val daFeet = (daMeters * 3.28084).roundToInt()
-
-        val sae = (1.180 * ((990.0 / dryPressure) * ((tempC + 273.15) / 298.15).pow(0.5))) - 0.180
-
-        return WeatherSnapshot(
-  tempC = tempC,
-  pressureHpa = pressureHpa,
-  humidityPct = humidityPct,
-  altitudeM = altitudeM,
-  densityAltitudeFt = daFeet,
-  saeCorrectionFactor = sae.coerceIn(0.85, 1.25),
-  isLive = true
-        )
+        return WeatherSnapshot(tempC, pressureHpa, humidityPct, altitudeM, daFeet, true)
     }
 
     suspend fun fetchLiveWeather(lat: Double, lon: Double, altM: Double): WeatherSnapshot? =
         withContext(Dispatchers.IO) {
   try {
-      val urlStr =
-          "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,surface_pressure"
+      val urlStr = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,surface_pressure"
       val conn = (URL(urlStr).openConnection() as HttpURLConnection).apply {
           connectTimeout = 5000
           readTimeout = 5000
-          requestMethod = "GET"
       }
       if (conn.responseCode == 200) {
           val body = conn.inputStream.bufferedReader().use { it.readText() }
-          val root = JSONObject(body)
-          val cur = root.getJSONObject("current")
-          val tempC = cur.optDouble("temperature_2m", 22.0)
-          val hum = cur.optDouble("relative_humidity_2m", 45.0)
-          val pres = cur.optDouble("surface_pressure", 1013.25)
-          computeDensityAltitude(tempC, pres, hum, altM)
+          val cur = JSONObject(body).getJSONObject("current")
+          computeDensityAltitude(
+              cur.optDouble("temperature_2m", 22.0),
+              cur.optDouble("surface_pressure", 1013.25),
+              cur.optDouble("relative_humidity_2m", 45.0),
+              altM
+          )
       } else null
-  } catch (_: Exception) {
-      null
-  }
+  } catch (_: Exception) { null }
         }
 }
 
@@ -260,26 +242,26 @@ class SettingsRepository(context: Context) {
 
     private fun load(): AppSettings {
         return AppSettings(
+  onboardingCompleted = prefs.getBoolean("onboardingCompleted", false),
   useMph = prefs.getBoolean("useMph", false),
-  themeMode = ThemeMode.entries.find { it.name == prefs.getString("themeMode", ThemeMode.OLED_DARK.name) }
-      ?: ThemeMode.OLED_DARK,
+  themeMode = ThemeMode.entries.find { it.name == prefs.getString("themeMode", ThemeMode.OLED_DARK.name) } ?: ThemeMode.OLED_DARK,
   rolloutEnabled = prefs.getBoolean("rolloutEnabled", true),
-  treeType = TreeType.entries.find { it.name == prefs.getString("treeType", TreeType.SPORTSMAN_500.name) }
-      ?: TreeType.SPORTSMAN_500,
-  orientationPref = OrientationPref.entries.find {
-      it.name == prefs.getString("orientationPref", OrientationPref.LOCK_LANDSCAPE_IN_DRAG_TRACK.name)
-  } ?: OrientationPref.LOCK_LANDSCAPE_IN_DRAG_TRACK,
+  treeType = TreeType.entries.find { it.name == prefs.getString("treeType", TreeType.SPORTSMAN_500.name) } ?: TreeType.SPORTSMAN_500,
+  orientationPref = OrientationPref.entries.find { it.name == prefs.getString("orientationPref", OrientationPref.LOCK_LANDSCAPE_IN_DRAG_TRACK.name) } ?: OrientationPref.LOCK_LANDSCAPE_IN_DRAG_TRACK,
   imuFusionEnabled = prefs.getBoolean("imuFusionEnabled", true),
   customStartSpeedKmh = prefs.getFloat("customStartKmh", 60f).toDouble(),
   customEndSpeedKmh = prefs.getFloat("customEndKmh", 160f).toDouble(),
-  gaugeLayout = GaugeLayoutStyle.entries.find {
-      it.name == prefs.getString("gaugeLayout", GaugeLayoutStyle.PRO_ANALOG_COCKPIT.name)
-  } ?: GaugeLayoutStyle.PRO_ANALOG_COCKPIT,
+  gaugeLayout = GaugeLayoutStyle.entries.find { it.name == prefs.getString("gaugeLayout", GaugeLayoutStyle.PRO_ANALOG_COCKPIT.name) } ?: GaugeLayoutStyle.PRO_ANALOG_COCKPIT,
   redlineRpm = prefs.getInt("redlineRpm", 7000),
   activeVehicleId = prefs.getLong("activeVehicleId", 1L),
   activeTrackId = prefs.getLong("activeTrackId", 1L),
+  gnssSourceType = GnssSourceType.entries.find { it.name == prefs.getString("gnssSourceType", GnssSourceType.INTERNAL_GPS.name) } ?: GnssSourceType.INTERNAL_GPS,
   btObdAddress = prefs.getString("btObdAddress", "") ?: "",
-  btGnssAddress = prefs.getString("btGnssAddress", "") ?: ""
+  btObdName = prefs.getString("btObdName", "") ?: "",
+  gnssDeviceId = prefs.getString("gnssDeviceId", "") ?: "",
+  gnssDeviceName = prefs.getString("gnssDeviceName", "") ?: "",
+  historyObdDevices = prefs.getStringSet("historyObdDevices", emptySet()) ?: emptySet(),
+  historyGnssDevices = prefs.getStringSet("historyGnssDevices", emptySet()) ?: emptySet()
         )
     }
 
@@ -287,6 +269,7 @@ class SettingsRepository(context: Context) {
         val next = transform(_settings.value)
         _settings.value = next
         prefs.edit().apply {
+  putBoolean("onboardingCompleted", next.onboardingCompleted)
   putBoolean("useMph", next.useMph)
   putString("themeMode", next.themeMode.name)
   putBoolean("rolloutEnabled", next.rolloutEnabled)
@@ -299,8 +282,13 @@ class SettingsRepository(context: Context) {
   putInt("redlineRpm", next.redlineRpm)
   putLong("activeVehicleId", next.activeVehicleId)
   putLong("activeTrackId", next.activeTrackId)
+  putString("gnssSourceType", next.gnssSourceType.name)
   putString("btObdAddress", next.btObdAddress)
-  putString("btGnssAddress", next.btGnssAddress)
+  putString("btObdName", next.btObdName)
+  putString("gnssDeviceId", next.gnssDeviceId)
+  putString("gnssDeviceName", next.gnssDeviceName)
+  putStringSet("historyObdDevices", next.historyObdDevices)
+  putStringSet("historyGnssDevices", next.historyGnssDevices)
   apply()
         }
     }

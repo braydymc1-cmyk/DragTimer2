@@ -145,12 +145,7 @@ interface RunDao {
 }
 
 @Database(
-    entities = [
-        RunRecord::class,
-        VehicleProfile::class,
-        TrackLayout::class,
-        TrackLapRecord::class
-    ],
+    entities = [RunRecord::class, VehicleProfile::class, TrackLayout::class, TrackLapRecord::class],
     version = 2,
     exportSchema = false
 )
@@ -181,85 +176,21 @@ abstract class AppDatabase : RoomDatabase() {
       db.execSQL("ALTER TABLE performance_runs ADD COLUMN densityAltitudeFt INTEGER DEFAULT NULL")
       db.execSQL("ALTER TABLE performance_runs ADD COLUMN telemetryJson TEXT NOT NULL DEFAULT '[]'")
 
-      db.execSQL(
-          """
-          CREATE TABLE IF NOT EXISTS `vehicle_profiles` (
-              `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-              `name` TEXT NOT NULL,
-              `makeModel` TEXT NOT NULL,
-              `weightKg` REAL NOT NULL,
-              `drivetrain` TEXT NOT NULL,
-              `notes` TEXT NOT NULL
-          )
-          """.trimIndent()
-      )
-
-      db.execSQL(
-          """
-          CREATE TABLE IF NOT EXISTS `track_layouts` (
-              `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-              `name` TEXT NOT NULL,
-              `startLat` REAL NOT NULL,
-              `startLon` REAL NOT NULL,
-              `sector1Lat` REAL NOT NULL,
-              `sector1Lon` REAL NOT NULL,
-              `sector2Lat` REAL NOT NULL,
-              `sector2Lon` REAL NOT NULL,
-              `finishLat` REAL NOT NULL,
-              `finishLon` REAL NOT NULL,
-              `isCircuit` INTEGER NOT NULL,
-              `bestLapMs` INTEGER
-          )
-          """.trimIndent()
-      )
-
-      db.execSQL(
-          """
-          CREATE TABLE IF NOT EXISTS `track_laps` (
-              `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-              `trackId` INTEGER NOT NULL,
-              `trackName` TEXT NOT NULL,
-              `vehicleName` TEXT NOT NULL,
-              `timestampEpochMs` INTEGER NOT NULL,
-              `lapNumber` INTEGER NOT NULL,
-              `lapTimeMs` INTEGER NOT NULL,
-              `sector1Ms` INTEGER,
-              `sector2Ms` INTEGER,
-              `sector3Ms` INTEGER,
-              `maxSpeedKmh` REAL NOT NULL,
-              `peakLatG` REAL NOT NULL,
-              `peakBrakingG` REAL NOT NULL,
-              `telemetryJson` TEXT NOT NULL
-          )
-          """.trimIndent()
-      )
+      db.execSQL("CREATE TABLE IF NOT EXISTS `vehicle_profiles` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `makeModel` TEXT NOT NULL, `weightKg` REAL NOT NULL, `drivetrain` TEXT NOT NULL, `notes` TEXT NOT NULL)")
+      db.execSQL("CREATE TABLE IF NOT EXISTS `track_layouts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLat` REAL NOT NULL, `startLon` REAL NOT NULL, `sector1Lat` REAL NOT NULL, `sector1Lon` REAL NOT NULL, `sector2Lat` REAL NOT NULL, `sector2Lon` REAL NOT NULL, `finishLat` REAL NOT NULL, `finishLon` REAL NOT NULL, `isCircuit` INTEGER NOT NULL, `bestLapMs` INTEGER)")
+      db.execSQL("CREATE TABLE IF NOT EXISTS `track_laps` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `trackName` TEXT NOT NULL, `vehicleName` TEXT NOT NULL, `timestampEpochMs` INTEGER NOT NULL, `lapNumber` INTEGER NOT NULL, `lapTimeMs` INTEGER NOT NULL, `sector1Ms` INTEGER, `sector2Ms` INTEGER, `sector3Ms` INTEGER, `maxSpeedKmh` REAL NOT NULL, `peakLatG` REAL NOT NULL, `peakBrakingG` REAL NOT NULL, `telemetryJson` TEXT NOT NULL)")
   }
         }
 
         fun getInstance(context: Context): AppDatabase {
   return INSTANCE ?: synchronized(this) {
-      Room.databaseBuilder(
-          context.applicationContext,
-          AppDatabase::class.java,
-          "gps_drag_timer.db"
-      )
+      Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "gps_drag_timer.db")
           .addMigrations(MIGRATION_1_2)
           .addCallback(object : Callback() {
               override fun onOpen(db: SupportSQLiteDatabase) {
                   super.onOpen(db)
                   CoroutineScope(Dispatchers.IO).launch {
                       val dao = getInstance(context).runDao()
-                      if (dao.getAllVehiclesSnapshot().isEmpty()) {
-                          dao.insertVehicle(
-                              VehicleProfile(
-                                  name = "Street / Track Build",
-                                  makeModel = "BMW E46 / E36",
-                                  weightKg = 1420.0,
-                                  drivetrain = "RWD",
-                                  notes = "Default Profile"
-                              )
-                          )
-                      }
                       if (dao.getAllTracksSnapshot().isEmpty()) {
                           dao.insertTrack(
                               TrackLayout(

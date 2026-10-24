@@ -12,8 +12,7 @@ data class GpsSample(
     val longitudinalG: Double,
     val lateralG: Double = 0.0,
     val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
-    val bearingDeg: Float = 0f
+    val longitude: Double = 0.0
 )
 
 object TimingConstants {
@@ -68,13 +67,6 @@ class ImuGpsFusionFilter {
   0.78 * gpsSpeedMps + 0.22 * fusedSpeedMps
         }
         return fusedSpeedMps
-    }
-
-    fun reset() {
-        fusedSpeedMps = 0.0
-        longitudinalG = 0.0
-        lateralG = 0.0
-        lastImuNanos = 0L
     }
 }
 
@@ -156,7 +148,7 @@ object TimingMath {
         s2: GpsSample,
         pinLat: Double,
         pinLon: Double,
-        gateRadiusM: Double = 22.0
+        gateRadiusM: Double = 24.0
     ): Long? {
         if (pinLat == 0.0 && pinLon == 0.0) return null
         val d2 = haversineMeters(s2.latitude, s2.longitude, pinLat, pinLon)

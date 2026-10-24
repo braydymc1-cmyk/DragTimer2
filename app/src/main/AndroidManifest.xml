@@ -12,7 +12,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
-
     <application
         android:allowBackup="true"
         android:label="Apex Telemetry"
@@ -21,11 +20,7 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
-        <service
-            android:name=".GpsTelemetryService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="location" />
+        <service android:name=".GpsTelemetryService" android:enabled="true" android:exported="false" android:foregroundServiceType="location" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

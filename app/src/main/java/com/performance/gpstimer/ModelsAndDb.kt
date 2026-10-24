@@ -113,39 +113,9 @@ data class AppSettings(
     )
 )
 
-data class WeatherSnapshot(
-    val tempC: Double = 22.0,
-    val pressureHpa: Double = 1013.25,
-    val humidityPct: Double = 45.0,
-    val altitudeM: Double = 15.0,
-    val densityAltitudeFt: Int = 450
-)
-
-data class ObdLiveMetrics(
-    val connected: Boolean = false,
-    val deviceName: String = "Disconnected",
-    val rpm: Int = 0,
-    val obdSpeedKmh: Int = 0,
-    val coolantTempC: Int = 86,
-    val intakeTempC: Int = 27,
-    val throttlePct: Double = 0.0,
-    val mapKpa: Int = 101,
-    val boostPsi: Double = 0.0,
-    val batteryVolts: Double = 13.8
-)
-
-data class TelemetryPoint(
-    val tMs: Long,
-    val speedKmh: Double,
-    val distM: Double,
-    val longG: Double,
-    val latG: Double = 0.0,
-    val rpm: Int = 0,
-    val boostPsi: Double = 0.0,
-    val throttlePct: Double = 0.0,
-    val lat: Double = 0.0,
-    val lon: Double = 0.0
-)
+data class WeatherSnapshot(val tempC: Double = 22.0, val pressureHpa: Double = 1013.25, val humidityPct: Double = 45.0, val altitudeM: Double = 15.0, val densityAltitudeFt: Int = 450)
+data class ObdLiveMetrics(val connected: Boolean = false, val deviceName: String = "Disconnected", val rpm: Int = 0, val obdSpeedKmh: Int = 0, val coolantTempC: Int = 86, val intakeTempC: Int = 27, val throttlePct: Double = 0.0, val mapKpa: Int = 101, val boostPsi: Double = 0.0, val batteryVolts: Double = 13.8)
+data class TelemetryPoint(val tMs: Long, val speedKmh: Double, val distM: Double, val longG: Double, val latG: Double = 0.0, val rpm: Int = 0, val boostPsi: Double = 0.0, val throttlePct: Double = 0.0, val lat: Double = 0.0, val lon: Double = 0.0)
 
 object TelemetrySerializer {
     fun encodeTrace(points: List<TelemetryPoint>): String {
@@ -154,17 +124,13 @@ object TelemetrySerializer {
         for (i in points.indices step step) {
             val p = points[i]
             arr.put(JSONObject().apply {
-                put("t", p.tMs)
-                put("v", (p.speedKmh * 100).roundToInt() / 100.0)
-                put("d", (p.distM * 100).roundToInt() / 100.0)
-                put("g", (p.longG * 100).roundToInt() / 100.0)
-                put("lg", (p.latG * 100).roundToInt() / 100.0)
-                put("r", p.rpm)
+                put("t", p.tMs); put("v", (p.speedKmh * 100).roundToInt() / 100.0)
+                put("d", (p.distM * 100).roundToInt() / 100.0); put("g", (p.longG * 100).roundToInt() / 100.0)
+                put("lg", (p.latG * 100).roundToInt() / 100.0); put("r", p.rpm)
             })
         }
         return arr.toString()
     }
-
     fun decodeTrace(json: String): List<TelemetryPoint> {
         if (json.isBlank() || json == "[]") return emptyList()
         val list = mutableListOf<TelemetryPoint>()
@@ -172,14 +138,7 @@ object TelemetrySerializer {
             val arr = JSONArray(json)
             for (i in 0 until arr.length()) {
                 val o = arr.getJSONObject(i)
-                list.add(TelemetryPoint(
-                    tMs = o.optLong("t", 0L),
-                    speedKmh = o.optDouble("v", 0.0),
-                    distM = o.optDouble("d", 0.0),
-                    longG = o.optDouble("g", 0.0),
-                    latG = o.optDouble("lg", 0.0),
-                    rpm = o.optInt("r", 0)
-                ))
+                list.add(TelemetryPoint(o.optLong("t", 0L), o.optDouble("v", 0.0), o.optDouble("d", 0.0), o.optDouble("g", 0.0), o.optDouble("lg", 0.0), o.optInt("r", 0)))
             }
         } catch (_: Exception) {}
         return list
@@ -196,8 +155,7 @@ object UnitConverter {
     fun distUnit(useMph: Boolean): String = if (useMph) "ft" else "m"
     fun formatSpeed(kmh: Double, useMph: Boolean): String = String.format(Locale.US, "%.1f %s", speed(kmh, useMph), speedUnit(useMph))
     fun formatDist(meters: Double, useMph: Boolean): String = String.format(Locale.US, "%.1f %s", dist(meters, useMph), distUnit(useMph))
-    fun formatTemp(tempC: Double, useMph: Boolean): String =
-        if (useMph) String.format(Locale.US, "%.0f°F", tempC * 9.0 / 5.0 + 32.0) else String.format(Locale.US, "%.0f°C", tempC)
+    fun formatTemp(tempC: Double, useMph: Boolean): String = if (useMph) String.format(Locale.US, "%.0f°F", tempC * 9.0 / 5.0 + 32.0) else String.format(Locale.US, "%.0f°C", tempC)
 }
 
 object WeatherCalculator {
@@ -210,12 +168,9 @@ object WeatherCalculator {
         val daMeters = 44330.0 * (1.0 - (rho / 1.225).coerceIn(0.5, 1.3).pow(1.0 / 4.25588))
         return WeatherSnapshot(tempC, pressureHpa, humidityPct, altitudeM, (daMeters * 3.28084).roundToInt())
     }
-
     suspend fun fetchLiveWeather(lat: Double, lon: Double, altM: Double): WeatherSnapshot? = withContext(Dispatchers.IO) {
         try {
-            val conn = (URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,surface_pressure").openConnection() as HttpURLConnection).apply {
-                connectTimeout = 5000; readTimeout = 5000
-            }
+            val conn = (URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,surface_pressure").openConnection() as HttpURLConnection).apply { connectTimeout = 5000; readTimeout = 5000 }
             if (conn.responseCode == 200) {
                 val cur = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).getJSONObject("current")
                 computeDensityAltitude(cur.optDouble("temperature_2m", 22.0), cur.optDouble("surface_pressure", 1013.25), cur.optDouble("relative_humidity_2m", 45.0), altM)
@@ -224,9 +179,6 @@ object WeatherCalculator {
     }
 }
 
-/**
- * Process-Wide Singleton Settings Repository so UI, Track Mode, and Service are always 100% in sync.
- */
 class SettingsRepository private constructor(context: Context) {
     private val prefs = context.getSharedPreferences("apex_telemetry_prefs", Context.MODE_PRIVATE)
     private val _settings = MutableStateFlow(load())
@@ -297,18 +249,7 @@ class SettingsRepository private constructor(context: Context) {
     }
 }
 
-data class GpsSample(
-    val elapsedNanos: Long,
-    val speedMps: Double,
-    val speedKmh: Double,
-    val cumulativeDistanceM: Double,
-    val altitudeM: Double,
-    val accuracyM: Float,
-    val longitudinalG: Double,
-    val lateralG: Double = 0.0,
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0
-)
+data class GpsSample(val elapsedNanos: Long, val speedMps: Double, val speedKmh: Double, val cumulativeDistanceM: Double, val altitudeM: Double, val accuracyM: Float, val longitudinalG: Double, val lateralG: Double = 0.0, val latitude: Double = 0.0, val longitude: Double = 0.0)
 
 object TimingConstants {
     const val ONE_FOOT_M = 0.3048
@@ -342,7 +283,6 @@ class ImuGpsFusionFilter {
         }
         lastImuNanos = timestampNanos
     }
-
     fun onGpsSpeedFix(gpsSpeedMps: Double, gpsAccelG: Double, imuEnabled: Boolean): Double {
         if (!imuEnabled) { fusedSpeedMps = gpsSpeedMps; longitudinalG = gpsAccelG; return gpsSpeedMps }
         fusedSpeedMps = if (gpsSpeedMps < 0.35 && abs(longitudinalG) < 0.12) 0.0 else 0.78 * gpsSpeedMps + 0.22 * fusedSpeedMps
@@ -354,10 +294,8 @@ object TimingMath {
     fun interpolateTimeAtSpeed(s1: GpsSample, s2: GpsSample, targetSpeedKmh: Double): Long {
         val dv = s2.speedKmh - s1.speedKmh
         if (abs(dv) < 1e-6) return s2.elapsedNanos
-        val f = ((targetSpeedKmh - s1.speedKmh) / dv).coerceIn(0.0, 1.0)
-        return s1.elapsedNanos + ((s2.elapsedNanos - s1.elapsedNanos) * f).toLong()
+        return s1.elapsedNanos + ((s2.elapsedNanos - s1.elapsedNanos) * ((targetSpeedKmh - s1.speedKmh) / dv).coerceIn(0.0, 1.0)).toLong()
     }
-
     fun interpolateDistanceAtSpeed(s1: GpsSample, s2: GpsSample, targetSpeedKmh: Double): Double {
         val crossNanos = interpolateTimeAtSpeed(s1, s2, targetSpeedKmh)
         val dt = (crossNanos - s1.elapsedNanos) / 1_000_000_000.0
@@ -366,13 +304,11 @@ object TimingMath {
         val a = (s2.speedMps - s1.speedMps) / totalDt
         return s1.cumulativeDistanceM + (s1.speedMps * dt) + (0.5 * a * dt * dt)
     }
-
     fun interpolateAltitudeAtSpeed(s1: GpsSample, s2: GpsSample, targetSpeedKmh: Double): Double {
         val dv = s2.speedKmh - s1.speedKmh
         if (abs(dv) < 1e-6) return s2.altitudeM
         return s1.altitudeM + (s2.altitudeM - s1.altitudeM) * ((targetSpeedKmh - s1.speedKmh) / dv).coerceIn(0.0, 1.0)
     }
-
     fun interpolateTimeAtDistance(s1: GpsSample, s2: GpsSample, targetDistanceM: Double): Long {
         val dx = s2.cumulativeDistanceM - s1.cumulativeDistanceM
         if (dx <= 1e-6) return s2.elapsedNanos
@@ -389,23 +325,19 @@ object TimingMath {
         }
         return s1.elapsedNanos + (tSec * 1_000_000_000.0).toLong()
     }
-
     fun interpolateSpeedAtDistance(s1: GpsSample, s2: GpsSample, targetDistanceM: Double): Double {
         val cross = interpolateTimeAtDistance(s1, s2, targetDistanceM)
         val tot = (s2.elapsedNanos - s1.elapsedNanos).toDouble()
         if (tot <= 0.0) return s2.speedKmh
         return s1.speedKmh + (s2.speedKmh - s1.speedKmh) * ((cross - s1.elapsedNanos) / tot).coerceIn(0.0, 1.0)
     }
-
     fun interpolateAltitudeAtDistance(s1: GpsSample, s2: GpsSample, targetDistanceM: Double): Double {
         val dx = s2.cumulativeDistanceM - s1.cumulativeDistanceM
         if (dx <= 1e-6) return s2.altitudeM
         return s1.altitudeM + (s2.altitudeM - s1.altitudeM) * ((targetDistanceM - s1.cumulativeDistanceM) / dx).coerceIn(0.0, 1.0)
     }
-
     fun calculateSlopePercent(startAltM: Double, endAltM: Double, distanceM: Double): Double =
         if (distanceM < 10.0) 0.0 else ((endAltM - startAltM) / distanceM) * 100.0
-
     fun haversineMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         if (lat1 == 0.0 && lon1 == 0.0) return Double.MAX_VALUE
         val r = 6371000.0
@@ -414,7 +346,6 @@ object TimingMath {
         val a = sin(dLat / 2).pow(2.0) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2.0)
         return 2.0 * r * atan2(sqrt(a), sqrt(1.0 - a))
     }
-
     fun checkSectorPinCrossing(s1: GpsSample, s2: GpsSample, pinLat: Double, pinLon: Double, gateRadiusM: Double = 24.0): Long? {
         if (pinLat == 0.0 && pinLon == 0.0) return null
         val d2 = haversineMeters(s2.latitude, s2.longitude, pinLat, pinLon)
@@ -466,87 +397,32 @@ data class RunRecord(
 )
 
 @Entity(tableName = "vehicle_profiles")
-data class VehicleProfile(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val name: String,
-    val makeModel: String,
-    val weightKg: Double,
-    val drivetrain: String,
-    val notes: String = "",
-    @ColumnInfo(defaultValue = "''") val photoUri: String = ""
-)
+data class VehicleProfile(@PrimaryKey(autoGenerate = true) val id: Long = 0, val name: String, val makeModel: String, val weightKg: Double, val drivetrain: String, val notes: String = "", @ColumnInfo(defaultValue = "''") val photoUri: String = "")
 
 @Entity(tableName = "track_layouts")
-data class TrackLayout(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val name: String,
-    val startLat: Double,
-    val startLon: Double,
-    val sector1Lat: Double = 0.0,
-    val sector1Lon: Double = 0.0,
-    val sector2Lat: Double = 0.0,
-    val sector2Lon: Double = 0.0,
-    val finishLat: Double = 0.0,
-    val finishLon: Double = 0.0,
-    val isCircuit: Boolean = true,
-    val bestLapMs: Long? = null
-)
+data class TrackLayout(@PrimaryKey(autoGenerate = true) val id: Long = 0, val name: String, val startLat: Double, val startLon: Double, val sector1Lat: Double = 0.0, val sector1Lon: Double = 0.0, val sector2Lat: Double = 0.0, val sector2Lon: Double = 0.0, val finishLat: Double = 0.0, val finishLon: Double = 0.0, val isCircuit: Boolean = true, val bestLapMs: Long? = null)
 
 @Entity(tableName = "track_laps")
-data class TrackLapRecord(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val trackId: Long,
-    val trackName: String,
-    val vehicleName: String,
-    val timestampEpochMs: Long,
-    val lapNumber: Int,
-    val lapTimeMs: Long,
-    val sector1Ms: Long? = null,
-    val sector2Ms: Long? = null,
-    val sector3Ms: Long? = null,
-    val maxSpeedKmh: Double,
-    val peakLatG: Double,
-    val peakBrakingG: Double,
-    val telemetryJson: String = "[]"
-)
+data class TrackLapRecord(@PrimaryKey(autoGenerate = true) val id: Long = 0, val trackId: Long, val trackName: String, val vehicleName: String, val timestampEpochMs: Long, val lapNumber: Int, val lapTimeMs: Long, val sector1Ms: Long? = null, val sector2Ms: Long? = null, val sector3Ms: Long? = null, val maxSpeedKmh: Double, val peakLatG: Double, val peakBrakingG: Double, val telemetryJson: String = "[]")
 
 @Dao
 interface RunDao {
-    @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC")
-    fun getAllRuns(): Flow<List<RunRecord>>
-    @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC")
-    suspend fun getAllRunsSnapshot(): List<RunRecord>
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRun(run: RunRecord): Long
-    @Delete
-    suspend fun deleteRun(run: RunRecord)
-    @Query("DELETE FROM performance_runs")
-    suspend fun clearAllRuns()
-
-    @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC")
-    fun getAllVehicles(): Flow<List<VehicleProfile>>
-    @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC")
-    suspend fun getAllVehiclesSnapshot(): List<VehicleProfile>
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVehicle(vehicle: VehicleProfile): Long
-    @Delete
-    suspend fun deleteVehicle(vehicle: VehicleProfile)
-
-    @Query("SELECT * FROM track_layouts ORDER BY id ASC")
-    fun getAllTracks(): Flow<List<TrackLayout>>
-    @Query("SELECT * FROM track_layouts ORDER BY id ASC")
-    suspend fun getAllTracksSnapshot(): List<TrackLayout>
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTrack(track: TrackLayout): Long
-    @Delete
-    suspend fun deleteTrack(track: TrackLayout)
-
-    @Query("SELECT * FROM track_laps ORDER BY timestampEpochMs DESC")
-    fun getAllLaps(): Flow<List<TrackLapRecord>>
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLap(lap: TrackLapRecord): Long
-    @Delete
-    suspend fun deleteLap(lap: TrackLapRecord)
+    @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC") fun getAllRuns(): Flow<List<RunRecord>>
+    @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC") suspend fun getAllRunsSnapshot(): List<RunRecord>
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertRun(run: RunRecord): Long
+    @Delete suspend fun deleteRun(run: RunRecord)
+    @Query("DELETE FROM performance_runs") suspend fun clearAllRuns()
+    @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC") fun getAllVehicles(): Flow<List<VehicleProfile>>
+    @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC") suspend fun getAllVehiclesSnapshot(): List<VehicleProfile>
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertVehicle(vehicle: VehicleProfile): Long
+    @Delete suspend fun deleteVehicle(vehicle: VehicleProfile)
+    @Query("SELECT * FROM track_layouts ORDER BY id ASC") fun getAllTracks(): Flow<List<TrackLayout>>
+    @Query("SELECT * FROM track_layouts ORDER BY id ASC") suspend fun getAllTracksSnapshot(): List<TrackLayout>
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertTrack(track: TrackLayout): Long
+    @Delete suspend fun deleteTrack(track: TrackLayout)
+    @Query("SELECT * FROM track_laps ORDER BY timestampEpochMs DESC") fun getAllLaps(): Flow<List<TrackLapRecord>>
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertLap(lap: TrackLapRecord): Long
+    @Delete suspend fun deleteLap(lap: TrackLapRecord)
 }
 
 @Database(entities = [RunRecord::class, VehicleProfile::class, TrackLayout::class, TrackLapRecord::class], version = 3, exportSchema = false)
@@ -592,13 +468,7 @@ abstract class AppDatabase : RoomDatabase() {
                         CoroutineScope(Dispatchers.IO).launch {
                             val dao = getInstance(context).runDao()
                             if (dao.getAllTracksSnapshot().isEmpty()) {
-                                dao.insertTrack(TrackLayout(
-                                    name = "Wanneroo Raceway (Barbagallo)",
-                                    startLat = -31.67432, startLon = 115.78685,
-                                    sector1Lat = -31.67108, sector1Lon = 115.78852,
-                                    sector2Lat = -31.67610, sector2Lon = 115.79160,
-                                    finishLat = -31.67432, finishLon = 115.78685, isCircuit = true
-                                ))
+                                dao.insertTrack(TrackLayout(name = "Wanneroo Raceway (Barbagallo)", startLat = -31.67432, startLon = 115.78685, sector1Lat = -31.67108, sector1Lon = 115.78852, sector2Lat = -31.67610, sector2Lon = 115.79160, finishLat = -31.67432, finishLon = 115.78685, isCircuit = true))
                             }
                         }
                     }

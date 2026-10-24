@@ -51,8 +51,7 @@ object NmeaParser {
         } else if (c.startsWith("\$GNRMC") || c.startsWith("\$GPRMC")) {
             val p = c.split(",")
             if (p.size > 8 && p[2] == "A") {
-                val lat = nmeaToDec(p[3], p[4])
-                val lon = nmeaToDec(p[5], p[6])
+                val lat = nmeaToDec(p[3], p[4]); val lon = nmeaToDec(p[5], p[6])
                 val spd = (p[7].toDoubleOrNull() ?: 0.0) * 0.514444
                 if (lat != 0.0 || lon != 0.0) onFix(lat, lon, spd, curAlt, curSats)
             }
@@ -84,10 +83,8 @@ class ObdElm327Manager(private val context: Context) {
                 val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
                 val device = bm?.adapter?.getRemoteDevice(macAddress) ?: return@launch
                 val btSocket = device.createRfcommSocketToServiceRecord(SPP_UUID)
-                btSocket.connect()
-                socket = btSocket
-                val out = btSocket.outputStream
-                val reader = btSocket.inputStream
+                btSocket.connect(); socket = btSocket
+                val out = btSocket.outputStream; val reader = btSocket.inputStream
                 listOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0").forEach { sendCmd(out, reader, it) }
                 _metrics.value = _metrics.value.copy(connected = true, deviceName = device.name ?: macAddress)
                 var slow = 0
@@ -96,9 +93,7 @@ class ObdElm327Manager(private val context: Context) {
                     val map = parseByte(sendCmd(out, reader, "010B"), "410B") ?: _metrics.value.mapKpa
                     val thr = parseByte(sendCmd(out, reader, "0111"), "4111")?.let { (it * 100.0) / 255.0 } ?: _metrics.value.throttlePct
                     val spd = parseByte(sendCmd(out, reader, "010D"), "410D") ?: _metrics.value.obdSpeedKmh
-                    var ect = _metrics.value.coolantTempC
-                    var iat = _metrics.value.intakeTempC
-                    var v = _metrics.value.batteryVolts
+                    var ect = _metrics.value.coolantTempC; var iat = _metrics.value.intakeTempC; var v = _metrics.value.batteryVolts
                     if (slow++ % 8 == 0) {
                         ect = parseByte(sendCmd(out, reader, "0105"), "4105")?.minus(40) ?: ect
                         iat = parseByte(sendCmd(out, reader, "010F"), "410F")?.minus(40) ?: iat
@@ -109,11 +104,9 @@ class ObdElm327Manager(private val context: Context) {
             } catch (_: Exception) { _metrics.value = ObdLiveMetrics(connected = false) }
         }
     }
-
     private fun sendCmd(out: OutputStream, input: InputStream, cmd: String): String {
         out.write("$cmd\r".toByteArray()); out.flush()
-        val sb = StringBuilder()
-        val t0 = SystemClock.elapsedRealtime()
+        val sb = StringBuilder(); val t0 = SystemClock.elapsedRealtime()
         while (SystemClock.elapsedRealtime() - t0 < 200L) {
             if (input.available() > 0) {
                 val c = input.read().toChar()
@@ -161,7 +154,6 @@ class ExternalGnssManager(private val context: Context, private val onExternalFi
             } catch (_: Exception) { isConnected = false }
         }
     }
-
     fun connectUsbCable(deviceIdStr: String) {
         disconnect()
         job = scope.launch {
@@ -204,7 +196,6 @@ class ExternalGnssManager(private val context: Context, private val onExternalFi
             } catch (_: Exception) { isConnected = false }
         }
     }
-
     fun disconnect() { job?.cancel(); try { btSocket?.close() } catch (_: Exception) {}; isConnected = false }
 }
 
@@ -221,7 +212,6 @@ object ExportEngine {
         val pDash = Paint().apply { color = Color.GRAY; strokeWidth = 2f }
 
         var y = 65f
-        // Updated header per user request: APEX TELEMETRY
         canvas.drawText("APEX TELEMETRY", w / 2f, y, pTitle); y += 34f
         canvas.drawText(SimpleDateFormat("dd MMM yyyy  HH:mm:ss", Locale.US).format(Date(run.timestampEpochMs)), w / 2f, y, pSub); y += 30f
         canvas.drawText("VEHICLE: ${run.vehicleName.uppercase()}", w / 2f, y, pSub); y += 26f
@@ -279,10 +269,6 @@ object ExportEngine {
         } catch (_: Exception) {}
     }
 
-    /**
-     * Generates a real PDF file, saves it into the phone's Downloads folder via MediaStore,
-     * and launches the Android Share chooser with the actual PDF attachment.
-     */
     fun shareTimeslipPdf(context: Context, run: RunRecord, useMph: Boolean) {
         val bmp = renderTimeslipBitmap(run, useMph)
         val pdf = PdfDocument()

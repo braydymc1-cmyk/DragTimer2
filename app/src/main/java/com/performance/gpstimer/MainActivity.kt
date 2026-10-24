@@ -80,20 +80,15 @@ enum class AppScreen { HUB_HOME, ACTIVE_TIMER, DASHBOARDS, TRACK_MANAGER, RUN_LO
 
 private val satelliteTileCache = ConcurrentHashMap<String, ImageBitmap>()
 
-/**
- * Procedural Carbon-Fiber Weave Texture drawn directly onto any Dashboard Canvas
- */
 fun DrawScope.drawCarbonFiberTexture() {
     drawRect(Color(0xFF0A0D12))
-    val cellW = 14f
-    val cellH = 7f
+    val cellW = 14f; val cellH = 7f
     val cols = (size.width / cellW).toInt() + 1
     val rows = (size.height / cellH).toInt() + 1
     for (r in 0..rows) {
         for (c in 0..cols) {
             val shift = if (r % 2 == 0) 0f else cellW / 2f
-            val x = c * cellW - shift
-            val y = r * cellH
+            val x = c * cellW - shift; val y = r * cellH
             drawRect(Color(0xFF141A24), Offset(x, y), Size(cellW * 0.48f, cellH * 0.85f))
             drawRect(Color(0xFF0E131B), Offset(x + cellW * 0.5f, y), Size(cellW * 0.48f, cellH * 0.85f))
         }
@@ -434,9 +429,6 @@ fun PerformanceTimerApp(
     }
 }
 
-/**
- * Finger-Draggable Satellite Map with Teardrop Sector Pins, Labels & 1-Tap Recenter on GPS
- */
 @Composable
 fun NativeSatelliteTrackMap(
     currentLat: Double,
@@ -457,7 +449,6 @@ fun NativeSatelliteTrackMap(
     val latRad = Math.toRadians(safeLat.coerceIn(-85.0, 85.0))
     val carExactY = ((1.0 - ln(tan(latRad) + 1.0 / cos(latRad)) / PI) / 2.0) * n
 
-    // Apply finger pan offset in tile coordinates
     val viewExactX = carExactX - (panOffsetPx.x / tilePx)
     val viewExactY = carExactY - (panOffsetPx.y / tilePx)
     val centerTileX = viewExactX.toInt()
@@ -467,14 +458,13 @@ fun NativeSatelliteTrackMap(
         withContext(Dispatchers.IO) {
             for (dx in -1..1) {
                 for (dy in -1..1) {
-                    val tx = centerTileX + dx
-                    val ty = centerTileY + dy
+                    val tx = centerTileX + dx; val ty = centerTileY + dy
                     val key = "$zoom/$ty/$tx"
                     if (!satelliteTileCache.containsKey(key)) {
                         try {
                             val url = URL("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/$zoom/$ty/$tx")
                             val conn = (url.openConnection() as HttpURLConnection).apply {
-                                setRequestProperty("User-Agent", "ApexTelemetry/4.5")
+                                setRequestProperty("User-Agent", "ApexTelemetry/4.6")
                                 connectTimeout = 5000; readTimeout = 5000
                             }
                             if (conn.responseCode == 200) {
@@ -506,24 +496,18 @@ fun NativeSatelliteTrackMap(
         val trigger = tileUpdateCounter
         Canvas(modifier = Modifier.fillMaxSize()) {
             if (trigger >= 0) {
-                val cx = size.width / 2f
-                val cy = size.height / 2f
+                val cx = size.width / 2f; val cy = size.height / 2f
                 val fracX = (viewExactX - centerTileX).toFloat()
                 val fracY = (viewExactY - centerTileY).toFloat()
 
                 for (dx in -2..2) {
                     for (dy in -2..2) {
-                        val tx = centerTileX + dx
-                        val ty = centerTileY + dy
+                        val tx = centerTileX + dx; val ty = centerTileY + dy
                         val img = satelliteTileCache["$zoom/$ty/$tx"]
                         val left = cx + (dx - fracX) * tilePx
                         val top = cy + (dy - fracY) * tilePx
                         if (img != null) {
-                            drawImage(
-                                image = img,
-                                dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
-                                dstSize = IntSize(tilePx.roundToInt() + 2, tilePx.roundToInt() + 2)
-                            )
+                            drawImage(image = img, dstOffset = IntOffset(left.roundToInt(), top.roundToInt()), dstSize = IntSize(tilePx.roundToInt() + 2, tilePx.roundToInt() + 2))
                         } else {
                             drawRect(Color(0xFF0D1520), Offset(left, top), Size(tilePx, tilePx))
                             drawRect(Color(0xFF1E293B), Offset(left, top), Size(tilePx, tilePx), style = Stroke(1f))
@@ -536,9 +520,7 @@ fun NativeSatelliteTrackMap(
                     val pxExact = ((lon + 180.0) / 360.0) * n
                     val r = Math.toRadians(lat.coerceIn(-85.0, 85.0))
                     val pyExact = ((1.0 - ln(tan(r) + 1.0 / cos(r)) / PI) / 2.0) * n
-                    val sx = cx + ((pxExact - viewExactX).toFloat() * tilePx)
-                    val sy = cy + ((pyExact - viewExactY).toFloat() * tilePx)
-                    return Offset(sx, sy)
+                    return Offset(cx + ((pxExact - viewExactX).toFloat() * tilePx), cy + ((pyExact - viewExactY).toFloat() * tilePx))
                 }
 
                 fun drawTeardropPin(pos: Offset, color: Color, label: String, colorInt: Int) {
@@ -552,7 +534,6 @@ fun NativeSatelliteTrackMap(
                     drawPath(p, color = color)
                     drawCircle(Color.White, radius = 4.5.dp.toPx(), center = Offset(pos.x, pos.y - 22.dp.toPx()))
 
-                    // Floating Label Pill above pin
                     drawRoundRect(
                         color = Color(0xCC080B10),
                         topLeft = Offset(pos.x - 26.dp.toPx(), pos.y - 54.dp.toPx()),
@@ -560,8 +541,7 @@ fun NativeSatelliteTrackMap(
                         cornerRadius = CornerRadius(6f, 6f)
                     )
                     val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                        this.color = colorInt
-                        textSize = 24f
+                        this.color = colorInt; textSize = 24f
                         typeface = android.graphics.Typeface.create(android.graphics.Typeface.MONOSPACE, android.graphics.Typeface.BOLD)
                         textAlign = android.graphics.Paint.Align.CENTER
                     }
@@ -578,14 +558,12 @@ fun NativeSatelliteTrackMap(
                     for (i in 0 until linePts.size - 1) {
                         drawLine(Color(0xFF00B0FF).copy(alpha = 0.85f), linePts[i], linePts[i + 1], strokeWidth = 5f, cap = StrokeCap.Round)
                     }
-
                     pStart?.let { drawTeardropPin(it, Color(0xFF00E676), "START", android.graphics.Color.parseColor("#00E676")) }
                     pS1?.let { drawTeardropPin(it, Color(0xFF00B0FF), "SEC 1", android.graphics.Color.parseColor("#00B0FF")) }
                     pS2?.let { drawTeardropPin(it, Color(0xFFFFC400), "SEC 2", android.graphics.Color.parseColor("#FFC400")) }
                     pFin?.let { drawTeardropPin(it, Color(0xFFFF5252), "FINISH", android.graphics.Color.parseColor("#FF5252")) }
                 }
 
-                // Draw Live Vehicle Position Beacon
                 latLonToScreen(safeLat, safeLon)?.let { carPos ->
                     drawCircle(Color(0xFF00E676).copy(alpha = 0.28f), radius = 20.dp.toPx(), center = carPos)
                     drawCircle(Color.White, radius = 9.dp.toPx(), center = carPos)
@@ -600,7 +578,7 @@ fun NativeSatelliteTrackMap(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.75f)).padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Text("DRAG MAP TO PAN • Z$zoom", color = Color(0xFF00E676), fontSize = 10.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                Text("DRAG MAP • Z$zoom", color = Color(0xFF00E676), fontSize = 10.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (panOffsetPx != Offset.Zero) {
@@ -612,7 +590,7 @@ fun NativeSatelliteTrackMap(
                     ) {
                         Icon(Icons.Default.MyLocation, contentDescription = "Recenter", modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("RECENTER", fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                        Text("RECENTER", fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                     }
                 }
                 SmallFloatingActionButton(onClick = { zoom = (zoom - 1).coerceAtLeast(13) }, containerColor = Color(0xFF141B26), contentColor = Color.White, modifier = Modifier.size(32.dp)) {
@@ -653,9 +631,6 @@ fun VehicleAvatarBadge(photoUri: String, sizeDp: Dp = 48.dp, onClick: (() -> Uni
     }
 }
 
-/**
- * Carbon-Fiber Textured Motorsport Dashboards (All 4 styles selectable anywhere!)
- */
 @Composable
 fun MotorsportDashboardView(
     uiState: TelemetryUiState,
@@ -699,16 +674,12 @@ fun MotorsportDashboardView(
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Interactive Style Selector Pills
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             DashStyle.entries.forEach { st ->
                 val isSelected = activeStyle == st
                 Button(
-                    onClick = {
-                        activeStyle = st
-                        onSelectStyle(st)
-                    },
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                    onClick = { activeStyle = st; onSelectStyle(st) },
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isSelected) Color(0xFF00E676) else Color(0xFF1E293B),
                         contentColor = if (isSelected) Color.Black else Color.White
@@ -716,45 +687,30 @@ fun MotorsportDashboardView(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f).height(36.dp)
                 ) {
-                    Text(st.label, fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
+                    Text(st.label, fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
 
         Spacer(Modifier.height(8.dp))
 
-        // Carbon-Fiber Housing Container with Metallic Bezel
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
                 .border(2.5.dp, Brush.linearGradient(listOf(Color(0xFF475569), Color(0xFF1E293B), Color(0xFF64748B))), RoundedCornerShape(18.dp))
         ) {
-            Canvas(modifier = Modifier.matchParentSize()) {
-                drawCarbonFiberTexture()
-            }
+            Canvas(modifier = Modifier.matchParentSize()) { drawCarbonFiberTexture() }
 
             Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
-                // 14-LED Recessed Shift-Light Array
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xDD05070B))
-                        .border(1.dp, Color(0xFF334155), RoundedCornerShape(10.dp))
-                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xDD05070B)).border(1.dp, Color(0xFF334155), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 7.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     for (i in 0 until 14) {
                         val lit = rpmRatio >= (i + 1) / 14f
                         val col = if (i < 6) Color(0xFF00E676) else if (i < 10) Color(0xFFFFC400) else Color(0xFFFF1744)
-                        Box(
-                            modifier = Modifier
-                                .size(15.dp)
-                                .clip(CircleShape)
-                                .background(if (lit) col else Color(0xFF161C26))
-                                .border(1.dp, if (lit) Color.White else Color(0xFF2D3748), CircleShape)
-                        )
+                        Box(modifier = Modifier.size(15.dp).clip(CircleShape).background(if (lit) col else Color(0xFF161C26)).border(1.dp, if (lit) Color.White else Color(0xFF2D3748), CircleShape))
                     }
                 }
 
@@ -767,12 +723,7 @@ fun MotorsportDashboardView(
                             Text("$effectiveRpm / ${settings.redlineRpm} RPM", color = Color(0xFF00E676), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.height(4.dp))
-                        LinearProgressIndicator(
-                            progress = { rpmRatio },
-                            modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)),
-                            color = if (rpmRatio > 0.88f) Color(0xFFFF1744) else Color(0xFF00E676),
-                            trackColor = Color(0xFF161F2C)
-                        )
+                        LinearProgressIndicator(progress = { rpmRatio }, modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)), color = if (rpmRatio > 0.88f) Color(0xFFFF1744) else Color(0xFF00E676), trackColor = Color(0xFF161F2C))
                         Spacer(Modifier.height(12.dp))
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -781,13 +732,7 @@ fun MotorsportDashboardView(
                                 DashBezelCell("LONG G", String.format(Locale.US, "%+.2f G", uiState.currentG), Color(0xFFFFC400))
                             }
                             Column(
-                                modifier = Modifier
-                                    .weight(1.3f)
-                                    .padding(horizontal = 8.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Brush.verticalGradient(listOf(Color(0xFF0D131D), Color(0xFF05070B))))
-                                    .border(2.dp, Color(0xFF00E676), RoundedCornerShape(16.dp))
-                                    .padding(vertical = 10.dp),
+                                modifier = Modifier.weight(1.3f).padding(horizontal = 8.dp).clip(RoundedCornerShape(16.dp)).background(Brush.verticalGradient(listOf(Color(0xFF0D131D), Color(0xFF05070B)))).border(2.dp, Color(0xFF00E676), RoundedCornerShape(16.dp)).padding(vertical = 10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text("GEAR", color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
@@ -805,9 +750,9 @@ fun MotorsportDashboardView(
 
                     DashStyle.ANALOG_TWIN -> {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                            GraphicalAnalogDial(title = "TACHOMETER", valueText = "$effectiveRpm", unitText = "RPM", maxScale = 8, fraction = rpmRatio, needleColor = Color(0xFFFF1744))
+                            GraphicalAnalogDial("TACHOMETER", "$effectiveRpm", "RPM", 8, rpmRatio, Color(0xFFFF1744))
                             GForceBallWidget(longG = uiState.currentG, latG = uiState.lateralG)
-                            GraphicalAnalogDial(title = "SPEEDOMETER", valueText = String.format(Locale.US, "%.0f", speedVal), unitText = speedUnit, maxScale = 260, fraction = (uiState.currentSpeedKmh.toFloat() / 260f).coerceIn(0f, 1f), needleColor = Color(0xFF00E676))
+                            GraphicalAnalogDial("SPEEDOMETER", String.format(Locale.US, "%.0f", speedVal), speedUnit, 260, (uiState.currentSpeedKmh.toFloat() / 260f).coerceIn(0f, 1f), Color(0xFF00E676))
                         }
                         Spacer(Modifier.height(10.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -830,15 +775,10 @@ fun MotorsportDashboardView(
                             }
                         }
                         Spacer(Modifier.height(8.dp))
-                        // Segmented Neon Power-Band Curve Bar
                         Row(modifier = Modifier.fillMaxWidth().height(22.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                             for (seg in 0 until 24) {
                                 val activeSeg = rpmRatio >= (seg + 1) / 24f
-                                val col = when {
-                                    seg < 12 -> Color(0xFF00B0FF)
-                                    seg < 19 -> Color(0xFF00E676)
-                                    else -> Color(0xFFFF1744)
-                                }
+                                val col = if (seg < 12) Color(0xFF00B0FF) else if (seg < 19) Color(0xFF00E676) else Color(0xFFFF1744)
                                 Box(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(if (activeSeg) col else Color(0xFF161F2C)))
                             }
                         }
@@ -871,13 +811,7 @@ fun MotorsportDashboardView(
                                         DashMetricType.DENSITY_ALT -> "${uiState.weather.densityAltitudeFt}ft"
                                     }
                                     Column(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(Color(0xDD0A0E15))
-                                            .border(1.5.dp, Color(0xFF334155), RoundedCornerShape(10.dp))
-                                            .clickable { editingSlotIndex = idx }
-                                            .padding(10.dp),
+                                        modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Color(0xDD0A0E15)).border(1.5.dp, Color(0xFF334155), RoundedCornerShape(10.dp)).clickable { editingSlotIndex = idx }.padding(10.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Text(m.label, color = Color(0xFF94A3B8), fontSize = 9.sp, maxLines = 1, fontFamily = FontFamily.Monospace)
@@ -895,16 +829,12 @@ fun MotorsportDashboardView(
     }
 }
 
-/**
- * Realistic Analog Dial with Brushed Aluminum Bezel, Carbon Face, Numbered Ticks & Glowing Needle
- */
 @Composable
 fun GraphicalAnalogDial(title: String, valueText: String, unitText: String, maxScale: Int, fraction: Float, needleColor: Color) {
     Box(modifier = Modifier.size(134.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val center = Offset(size.width / 2f, size.height / 2f)
             val r = size.minDimension / 2f
-            // Metallic outer ring + recessed inner carbon face
             drawCircle(Brush.linearGradient(listOf(Color(0xFF64748B), Color(0xFF1E293B), Color(0xFF475569))), radius = r, center = center)
             drawCircle(Color(0xFF06090E), radius = r - 5.dp.toPx(), center = center)
 
@@ -915,8 +845,7 @@ fun GraphicalAnalogDial(title: String, valueText: String, unitText: String, maxS
             drawArc(needleColor, 135f, 270f * fraction.coerceIn(0f, 1f), false, topLeft = Offset(arcInset, arcInset), size = arcSize, style = Stroke(7.dp.toPx(), cap = StrokeCap.Round))
 
             val numPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = android.graphics.Color.WHITE
-                textSize = 20f
+                color = android.graphics.Color.WHITE; textSize = 20f
                 typeface = android.graphics.Typeface.create(android.graphics.Typeface.MONOSPACE, android.graphics.Typeface.BOLD)
                 textAlign = android.graphics.Paint.Align.CENTER
             }
@@ -924,9 +853,7 @@ fun GraphicalAnalogDial(title: String, valueText: String, unitText: String, maxS
             for (i in 0..8) {
                 val deg = 135f + (i / 8f) * 270f
                 val rad = Math.toRadians(deg.toDouble())
-                val outerR = r - 7.dp.toPx()
-                val innerR = outerR - 8.dp.toPx()
-                val textR = r - 23.dp.toPx()
+                val outerR = r - 7.dp.toPx(); val innerR = outerR - 8.dp.toPx(); val textR = r - 23.dp.toPx()
                 drawLine(
                     if (i >= 7) Color(0xFFFF1744) else Color.White,
                     Offset(center.x + (innerR * cos(rad)).toFloat(), center.y + (innerR * sin(rad)).toFloat()),
@@ -934,12 +861,7 @@ fun GraphicalAnalogDial(title: String, valueText: String, unitText: String, maxS
                     strokeWidth = 2.5f
                 )
                 val numVal = if (maxScale <= 10) "$i" else "${(i * (maxScale / 8))}"
-                drawContext.canvas.nativeCanvas.drawText(
-                    numVal,
-                    center.x + (textR * cos(rad)).toFloat(),
-                    center.y + (textR * sin(rad)).toFloat() + 6f,
-                    numPaint
-                )
+                drawContext.canvas.nativeCanvas.drawText(numVal, center.x + (textR * cos(rad)).toFloat(), center.y + (textR * sin(rad)).toFloat() + 6f, numPaint)
             }
 
             val needleDeg = 135f + 270f * fraction.coerceIn(0f, 1f)
@@ -960,12 +882,7 @@ fun GraphicalAnalogDial(title: String, valueText: String, unitText: String, maxS
 @Composable
 private fun DashBezelCell(label: String, value: String, accent: Color, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xDD070A0F))
-            .border(1.dp, Color(0xFF334155), RoundedCornerShape(8.dp))
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0xDD070A0F)).border(1.dp, Color(0xFF334155), RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 6.dp)
     ) {
         Text(label, color = Color(0xFF94A3B8), fontSize = 9.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
         Text(value, color = accent, fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
@@ -976,8 +893,7 @@ private fun DashBezelCell(label: String, value: String, accent: Color, modifier:
 fun GForceBallWidget(longG: Double, latG: Double) {
     Box(modifier = Modifier.size(88.dp), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val r = size.minDimension / 2f
-            val center = Offset(size.width / 2f, size.height / 2f)
+            val r = size.minDimension / 2f; val center = Offset(size.width / 2f, size.height / 2f)
             drawCircle(Color(0xFF06090E), radius = r, center = center)
             drawCircle(Color(0xFF475569), radius = r, center = center, style = Stroke(2.5f))
             drawCircle(Color(0xFF1E293B), radius = r * 0.5f, center = center, style = Stroke(1.5f))
@@ -1012,12 +928,7 @@ fun ActiveTimerScreen(
 
     if (isFullScreenTreeActive) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFF080B10))
-                .border(2.dp, Color(0xFF263238), RoundedCornerShape(16.dp))
-                .padding(14.dp),
+            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(Color(0xFF080B10)).border(2.dp, Color(0xFF263238), RoundedCornerShape(16.dp)).padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -1025,33 +936,15 @@ fun ActiveTimerScreen(
                 Text(settings.treeType.label, color = Color(0xFFFFC400), fontWeight = FontWeight.Black, fontSize = 13.sp, fontFamily = FontFamily.Monospace)
                 TextButton(onClick = onExitTreeToHub) { Text("BACK TO HUB", color = Color(0xFF00B0FF), fontSize = 11.sp) }
             }
-
-            NhraDragLightingTree(
-                stageState = uiState.treeStage,
-                treeType = settings.treeType,
-                reactionMs = uiState.reactionTimeMs,
-                redLight = uiState.redLightJump,
-                compactLandscape = isLandscape,
-                modifier = Modifier.fillMaxWidth().weight(1f)
-            )
-
+            NhraDragLightingTree(uiState.treeStage, settings.treeType, uiState.reactionTimeMs, uiState.redLightJump, isLandscape, Modifier.fillMaxWidth().weight(1f))
             Spacer(Modifier.height(10.dp))
-
             Button(
                 onClick = onArmToggle,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676),
-                    contentColor = Color.Black
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676), contentColor = Color.Black)
             ) {
-                Text(
-                    text = if (isArmedOrRunning) "WATCH LIGHTS — LAUNCH ON GREEN (TAP TO ABORT)" else "STAGE & START FULLSCREEN TREE (WITH AUDIO)",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Monospace
-                )
+                Text(if (isArmedOrRunning) "WATCH LIGHTS — LAUNCH ON GREEN (ABORT)" else "STAGE & START FULLSCREEN TREE", fontSize = 14.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
             }
         }
         return
@@ -1074,38 +967,15 @@ fun ActiveTimerScreen(
         }
 
         if (uiState.mode == TestMode.TRACK_CIRCUIT) {
-            NativeSatelliteTrackMap(
-                currentLat = uiState.currentLat,
-                currentLon = uiState.currentLon,
-                activeTrack = activeTrack,
-                modifier = Modifier.fillMaxWidth().height(if (isLandscape) 195.dp else 240.dp)
-            )
+            NativeSatelliteTrackMap(uiState.currentLat, uiState.currentLon, activeTrack, Modifier.fillMaxWidth().height(if (isLandscape) 195.dp else 240.dp))
             Spacer(Modifier.height(8.dp))
             TrackPinControlsCard(activeTrack, uiState.currentLat, uiState.currentLon, onDropTrackPin)
             Spacer(Modifier.height(8.dp))
-            MotorsportDashboardView(
-                uiState = uiState,
-                settings = settings,
-                onSelectStyle = onSelectDashStyle,
-                onUpdateSlotMetric = onUpdateDashSlot
-            )
+            MotorsportDashboardView(uiState, settings, onSelectDashStyle, onUpdateDashSlot)
         } else {
-            PrimarySpeedAndTimerCard(
-                dispSpeed = dispSpeed,
-                speedUnit = speedUnit,
-                uiState = uiState,
-                useMph = settings.useMph,
-                compact = isLandscape,
-                modifier = Modifier.fillMaxWidth()
-            )
+            PrimarySpeedAndTimerCard(dispSpeed, speedUnit, uiState, settings.useMph, isLandscape, Modifier.fillMaxWidth())
             Spacer(Modifier.height(10.dp))
-            TimeSlipCard(
-                mode = uiState.mode,
-                uiState = uiState,
-                run = uiState.latestRun,
-                useMph = settings.useMph,
-                onShareTimeslip = onShareTimeslip
-            )
+            TimeSlipCard(uiState.mode, uiState, uiState.latestRun, settings.useMph, onShareTimeslip)
         }
 
         Spacer(Modifier.height(10.dp))
@@ -1122,28 +992,17 @@ fun ActiveTimerScreen(
             onClick = onArmToggle,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676),
-                contentColor = Color.Black
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676), contentColor = Color.Black)
         ) {
-            Text(btnLabel, fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+            Text(btnLabel, fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
         }
     }
 }
 
 @Composable
-fun NhraDragLightingTree(
-    stageState: TreeStageState,
-    treeType: TreeType,
-    reactionMs: Long?,
-    redLight: Boolean,
-    compactLandscape: Boolean = false,
-    modifier: Modifier = Modifier
-) {
+fun NhraDragLightingTree(stageState: TreeStageState, treeType: TreeType, reactionMs: Long?, redLight: Boolean, compactLandscape: Boolean = false, modifier: Modifier = Modifier) {
     val bulbSize = if (compactLandscape) 36.dp else 48.dp
     val spacing = if (compactLandscape) 6.dp else 10.dp
-
     Column(
         modifier = modifier.clip(RoundedCornerShape(14.dp)).background(Color(0xFF0D1017)).padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1153,19 +1012,13 @@ fun NhraDragLightingTree(
         Spacer(Modifier.height(6.dp))
         StagingBeamRow("STAGE", stageState.ordinal >= TreeStageState.STAGE.ordinal)
         Spacer(Modifier.height(spacing))
-
         val a1 = stageState == TreeStageState.AMBER_1 || (treeType.isSimultaneous && stageState == TreeStageState.AMBER_3)
         val a2 = stageState == TreeStageState.AMBER_2 || (treeType.isSimultaneous && stageState == TreeStageState.AMBER_3)
         val a3 = stageState == TreeStageState.AMBER_3
-
-        TreeBulb(Color(0xFFFFB300), a1, bulbSize)
-        Spacer(Modifier.height(spacing))
-        TreeBulb(Color(0xFFFFB300), a2, bulbSize)
-        Spacer(Modifier.height(spacing))
-        TreeBulb(Color(0xFFFFB300), a3, bulbSize)
-        Spacer(Modifier.height(spacing))
-        TreeBulb(Color(0xFF00E676), stageState == TreeStageState.GREEN, bulbSize)
-        Spacer(Modifier.height(spacing))
+        TreeBulb(Color(0xFFFFB300), a1, bulbSize); Spacer(Modifier.height(spacing))
+        TreeBulb(Color(0xFFFFB300), a2, bulbSize); Spacer(Modifier.height(spacing))
+        TreeBulb(Color(0xFFFFB300), a3, bulbSize); Spacer(Modifier.height(spacing))
+        TreeBulb(Color(0xFF00E676), stageState == TreeStageState.GREEN, bulbSize); Spacer(Modifier.height(spacing))
         TreeBulb(Color(0xFFFF1744), stageState == TreeStageState.RED_FOUL || redLight, bulbSize)
     }
 }
@@ -1186,23 +1039,15 @@ private fun TreeBulb(color: Color, isLit: Boolean, sizeDp: Dp) {
 }
 
 @Composable
-fun TimeSlipCard(
-    mode: TestMode,
-    uiState: TelemetryUiState,
-    run: RunRecord?,
-    useMph: Boolean,
-    onShareTimeslip: (RunRecord) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface).padding(14.dp)
-    ) {
+fun TimeSlipCard(mode: TestMode, uiState: TelemetryUiState, run: RunRecord?, useMph: Boolean, onShareTimeslip: (RunRecord) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface).padding(14.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("APEX TELEMETRY TIMESLIP", color = Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
+            Text("APEX TELEMETRY TIMESLIP", color = Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.weight(1f), maxLines = 1)
             if (run != null) {
-                TextButton(onClick = { onShareTimeslip(run) }) {
-                    Icon(Icons.Default.Share, contentDescription = "Share Slip", tint = Color(0xFF00E676))
+                TextButton(onClick = { onShareTimeslip(run) }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)) {
+                    Icon(Icons.Default.Share, contentDescription = "Share Slip", tint = Color(0xFF00E676), modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("EXPORT PDF", color = Color(0xFF00E676), fontSize = 11.sp)
+                    Text("EXPORT PDF", color = Color(0xFF00E676), fontSize = 11.sp, maxLines = 1)
                 }
             }
         }
@@ -1214,7 +1059,6 @@ fun TimeSlipCard(
         if (rt != null || mode == TestMode.DRAG_TREE) {
             SlipRow("REACTION TIME (R/T)", if (rt != null) "${formatMsToSec(rt)} ${if (red) "(RED JUMP)" else "(GREEN)"}" else "--.---", highlight = true)
         }
-
         if (mode == TestMode.TOP_SPEED_LOG) {
             val peakSpd = if (uiState.status == RunStatus.TOP_SPEED_ACTIVE) uiState.sessionMaxSpeedKmh else (run?.trapSpeedKmh ?: uiState.sessionMaxSpeedKmh)
             SlipRow("PEAK TOP SPEED", UnitConverter.formatSpeed(peakSpd, useMph), highlight = true)
@@ -1255,18 +1099,11 @@ fun SettingsScreen(
     var obdDropdownExpanded by remember { mutableStateOf(false) }
     var showPreviousGnss by remember { mutableStateOf(false) }
     var gnssDropdownExpanded by remember { mutableStateOf(false) }
-
     var editingVehicle by remember { mutableStateOf<VehicleProfile?>(null) }
 
-    val allBtDevices = remember(settings.btObdAddress, showPreviousObd, showPreviousGnss) {
-        HardwareDiscoveryHelper.getBluetoothDevices(context, settings.btObdAddress)
-    }
-    val usbGnssDevices = remember(settings.gnssSourceType, gnssDropdownExpanded) {
-        HardwareDiscoveryHelper.getUsbGnssDevices(context)
-    }
-    val obdOptions = remember(allBtDevices, showPreviousObd) {
-        if (showPreviousObd) allBtDevices else allBtDevices.filter { it.isCurrentlyConnected }
-    }
+    val allBtDevices = remember(settings.btObdAddress, showPreviousObd, showPreviousGnss) { HardwareDiscoveryHelper.getBluetoothDevices(context, settings.btObdAddress) }
+    val usbGnssDevices = remember(settings.gnssSourceType, gnssDropdownExpanded) { HardwareDiscoveryHelper.getUsbGnssDevices(context) }
+    val obdOptions = remember(allBtDevices, showPreviousObd) { if (showPreviousObd) allBtDevices else allBtDevices.filter { it.isCurrentlyConnected } }
     val gnssOptions = remember(usbGnssDevices, allBtDevices, showPreviousGnss, settings.gnssSourceType) {
         when (settings.gnssSourceType) {
             GnssSourceType.INTERNAL_GPS -> emptyList()
@@ -1307,18 +1144,11 @@ fun SettingsScreen(
             },
             confirmButton = {
                 Button(onClick = {
-                    onSaveVehicle(editingVehicle!!.copy(
-                        name = if (eName.isBlank()) editingVehicle!!.name else eName.trim(),
-                        makeModel = eModel.trim(),
-                        weightKg = eWeight.toDoubleOrNull() ?: editingVehicle!!.weightKg,
-                        drivetrain = eDrive
-                    ))
+                    onSaveVehicle(editingVehicle!!.copy(name = if (eName.isBlank()) editingVehicle!!.name else eName.trim(), makeModel = eModel.trim(), weightKg = eWeight.toDoubleOrNull() ?: editingVehicle!!.weightKg, drivetrain = eDrive))
                     editingVehicle = null
                 }) { Text("SAVE CHANGES") }
             },
-            dismissButton = {
-                TextButton(onClick = { editingVehicle = null }) { Text("CANCEL") }
-            }
+            dismissButton = { TextButton(onClick = { editingVehicle = null }) { Text("CANCEL") } }
         )
     }
 
@@ -1330,13 +1160,7 @@ fun SettingsScreen(
                 vehicles.forEach { v ->
                     val isSelected = settings.activeVehicleId == v.id
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF0D1118))
-                            .border(if (isSelected) 1.5.dp else 0.dp, if (isSelected) Color(0xFF00E676) else Color.Transparent, RoundedCornerShape(10.dp))
-                            .clickable { onUpdateSettings { it.copy(activeVehicleId = v.id) } }
-                            .padding(8.dp),
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xFF0D1118)).border(if (isSelected) 1.5.dp else 0.dp, if (isSelected) Color(0xFF00E676) else Color.Transparent, RoundedCornerShape(10.dp)).clickable { onUpdateSettings { it.copy(activeVehicleId = v.id) } }.padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -1344,22 +1168,16 @@ fun SettingsScreen(
                             VehicleAvatarBadge(photoUri = v.photoUri, sizeDp = 46.dp, onClick = { onPickVehiclePhoto(v) })
                             Spacer(Modifier.width(10.dp))
                             Column {
-                                Text(if (isSelected) "${v.name} (ACTIVE)" else v.name, color = if (isSelected) Color(0xFF00E676) else Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("${v.makeModel} • ${v.weightKg.toInt()}kg • ${v.drivetrain}", color = Color.Gray, fontSize = 11.sp)
+                                Text(if (isSelected) "${v.name} (ACTIVE)" else v.name, color = if (isSelected) Color(0xFF00E676) else Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("${v.makeModel} • ${v.weightKg.toInt()}kg • ${v.drivetrain}", color = Color.Gray, fontSize = 11.sp, maxLines = 1)
                             }
                         }
                         Row {
-                            IconButton(onClick = { editingVehicle = v }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit Vehicle", tint = Color(0xFF00B0FF))
-                            }
-                            IconButton(
-                                onClick = {
-                                    if (vehicles.size > 1) onDeleteVehicle(v)
-                                    else Toast.makeText(context, "Keep at least 1 vehicle profile", Toast.LENGTH_SHORT).show()
-                                }
-                            ) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete Vehicle", tint = Color(0xFFFF5252))
-                            }
+                            IconButton(onClick = { editingVehicle = v }) { Icon(Icons.Default.Edit, contentDescription = "Edit Vehicle", tint = Color(0xFF00B0FF)) }
+                            IconButton(onClick = {
+                                if (vehicles.size > 1) onDeleteVehicle(v)
+                                else Toast.makeText(context, "Keep at least 1 vehicle profile", Toast.LENGTH_SHORT).show()
+                            }) { Icon(Icons.Default.Delete, contentDescription = "Delete Vehicle", tint = Color(0xFFFF5252)) }
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -1381,18 +1199,16 @@ fun SettingsScreen(
         item {
             SettingsCard("OBD-II & EXTERNAL GNSS HARDWARE") {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Show Previously Connected OBD", color = Color.Gray, fontSize = 12.sp)
+                    Text("Show Previously Connected OBD", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.weight(1f))
                     Switch(checked = showPreviousObd, onCheckedChange = { showPreviousObd = it })
                 }
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(onClick = { obdDropdownExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text(if (settings.btObdName.isNotBlank()) "OBD: ${settings.btObdName}" else "Select OBD-II Adapter (${obdOptions.size}) ▼", color = Color(0xFF00E676))
+                        Text(if (settings.btObdName.isNotBlank()) "OBD: ${settings.btObdName}" else "Select OBD-II Adapter (${obdOptions.size}) ▼", color = Color(0xFF00E676), maxLines = 1)
                     }
                     DropdownMenu(expanded = obdDropdownExpanded, onDismissRequest = { obdDropdownExpanded = false }) {
                         DropdownMenuItem(text = { Text("Disconnect") }, onClick = { onSelectObd("", ""); obdDropdownExpanded = false })
-                        obdOptions.forEach { dev ->
-                            DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectObd(dev.id, dev.name); obdDropdownExpanded = false })
-                        }
+                        obdOptions.forEach { dev -> DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectObd(dev.id, dev.name); obdDropdownExpanded = false }) }
                     }
                 }
                 Spacer(Modifier.height(10.dp))
@@ -1402,26 +1218,25 @@ fun SettingsScreen(
                         Button(
                             onClick = { onSelectGnss(src, settings.gnssDeviceId, settings.gnssDeviceName) },
                             colors = ButtonDefaults.buttonColors(containerColor = if (sel) Color(0xFF00B0FF) else Color(0xFF1E293B), contentColor = if (sel) Color.Black else Color.White),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(if (src == GnssSourceType.INTERNAL_GPS) "PHONE" else if (src == GnssSourceType.USB_CABLE_GNSS) "USB OTG" else "BT GNSS", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(if (src == GnssSourceType.INTERNAL_GPS) "PHONE" else if (src == GnssSourceType.USB_CABLE_GNSS) "USB OTG" else "BT GNSS", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                         }
                     }
                 }
                 if (settings.gnssSourceType != GnssSourceType.INTERNAL_GPS) {
                     Spacer(Modifier.height(6.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Show Previously Connected GNSS", color = Color.Gray, fontSize = 12.sp)
+                        Text("Show Previously Connected GNSS", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.weight(1f))
                         Switch(checked = showPreviousGnss, onCheckedChange = { showPreviousGnss = it })
                     }
                     Box(modifier = Modifier.fillMaxWidth()) {
                         OutlinedButton(onClick = { gnssDropdownExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-                            Text(if (settings.gnssDeviceName.isNotBlank()) "GNSS: ${settings.gnssDeviceName}" else "Select GNSS Receiver (${gnssOptions.size}) ▼", color = Color(0xFF00B0FF))
+                            Text(if (settings.gnssDeviceName.isNotBlank()) "GNSS: ${settings.gnssDeviceName}" else "Select GNSS Receiver (${gnssOptions.size}) ▼", color = Color(0xFF00B0FF), maxLines = 1)
                         }
                         DropdownMenu(expanded = gnssDropdownExpanded, onDismissRequest = { gnssDropdownExpanded = false }) {
-                            gnssOptions.forEach { dev ->
-                                DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectGnss(settings.gnssSourceType, dev.id, dev.name); gnssDropdownExpanded = false })
-                            }
+                            gnssOptions.forEach { dev -> DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectGnss(settings.gnssSourceType, dev.id, dev.name); gnssDropdownExpanded = false }) }
                         }
                     }
                 }
@@ -1431,35 +1246,35 @@ fun SettingsScreen(
         item {
             SettingsCard("DISPLAY, ORIENTATION & DRAG TREE") {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("UNITS (KPH / MPH)", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
-                    Button(onClick = { onUpdateSettings { it.copy(useMph = !it.useMph) } }) { Text(if (settings.useMph) "MPH / FT" else "KM/H / M") }
+                    Text("UNITS (KPH / MPH)", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    Button(onClick = { onUpdateSettings { it.copy(useMph = !it.useMph) } }) { Text(if (settings.useMph) "MPH / FT" else "KM/H / M", maxLines = 1) }
                 }
                 Spacer(Modifier.height(6.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("ORIENTATION", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                    Text("ORIENTATION", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Button(onClick = {
                         val next = OrientationPref.entries[(settings.orientationPref.ordinal + 1) % OrientationPref.entries.size]
                         onUpdateSettings { it.copy(orientationPref = next) }
-                    }) { Text(settings.orientationPref.label, fontSize = 11.sp) }
+                    }) { Text(settings.orientationPref.label, fontSize = 11.sp, maxLines = 1) }
                 }
                 Spacer(Modifier.height(6.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("THEME", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                    Text("THEME", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Button(onClick = {
                         val next = ThemeMode.entries[(settings.themeMode.ordinal + 1) % ThemeMode.entries.size]
                         onUpdateSettings { it.copy(themeMode = next) }
-                    }) { Text(settings.themeMode.label) }
+                    }) { Text(settings.themeMode.label, maxLines = 1) }
                 }
                 Spacer(Modifier.height(6.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("DRAG TREE MODE", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                    Text("DRAG TREE MODE", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Button(onClick = {
                         val next = TreeType.entries[(settings.treeType.ordinal + 1) % TreeType.entries.size]
                         onUpdateSettings { it.copy(treeType = next) }
-                    }) { Text(settings.treeType.label) }
+                    }) { Text(settings.treeType.label, maxLines = 1) }
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("1-FT DRAG ROLLOUT", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                    Text("1-FT DRAG ROLLOUT", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                     Switch(checked = settings.rolloutEnabled, onCheckedChange = { onUpdateSettings { s -> s.copy(rolloutEnabled = it) } })
                 }
             }
@@ -1467,12 +1282,12 @@ fun SettingsScreen(
 
         item {
             SettingsCard("DATABASE BACKUP & RESTORE") {
-                Button(onClick = onBackupDatabase, modifier = Modifier.fillMaxWidth()) { Text("EXPORT FULL JSON BACKUP") }
+                Button(onClick = onBackupDatabase, modifier = Modifier.fillMaxWidth()) { Text("EXPORT FULL JSON BACKUP", maxLines = 1) }
                 Spacer(Modifier.height(6.dp))
                 OutlinedTextField(value = restoreJsonInput, onValueChange = { restoreJsonInput = it }, label = { Text("Paste Backup JSON Here") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(6.dp))
                 Button(onClick = { if (restoreJsonInput.isNotBlank()) { onRestoreDatabase(restoreJsonInput); restoreJsonInput = "" } }, enabled = restoreJsonInput.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
-                    Text("RESTORE RUNS")
+                    Text("RESTORE RUNS", maxLines = 1)
                 }
             }
         }
@@ -1491,12 +1306,7 @@ fun ModeHubScreen(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF0F141D))))
-                .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(14.dp))
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF0F141D)))).border(1.dp, Color(0xFF1E293B), RoundedCornerShape(14.dp)).padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             VehicleAvatarBadge(photoUri = activeVehicle?.photoUri ?: "", sizeDp = 46.dp, onClick = onTapCarPhoto)
@@ -1532,13 +1342,7 @@ fun ModeHubScreen(
                     else -> Color(0xFF00E676)
                 }
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
-                        .clickable { onSelectMode(mode) }
-                        .padding(12.dp),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface).border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(14.dp)).clickable { onSelectMode(mode) }.padding(12.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -1572,14 +1376,7 @@ fun TrackManagerScreen(
 ) {
     var newTrackName by remember { mutableStateOf("") }
     LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item {
-            NativeSatelliteTrackMap(
-                currentLat = uiState.currentLat,
-                currentLon = uiState.currentLon,
-                activeTrack = activeTrack,
-                modifier = Modifier.fillMaxWidth().height(240.dp)
-            )
-        }
+        item { NativeSatelliteTrackMap(uiState.currentLat, uiState.currentLon, activeTrack, Modifier.fillMaxWidth().height(240.dp)) }
         item { TrackPinControlsCard(activeTrack, uiState.currentLat, uiState.currentLon, onDropPinOnActive) }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1587,7 +1384,7 @@ fun TrackManagerScreen(
                 Button(onClick = {
                     onCreateTrack(if (newTrackName.isBlank()) "Custom Circuit ${tracks.size + 1}" else newTrackName.trim())
                     newTrackName = ""
-                }) { Text("ADD TRACK") }
+                }) { Text("ADD TRACK", maxLines = 1) }
             }
         }
         items(tracks, key = { it.id }) { track ->
@@ -1598,17 +1395,15 @@ fun TrackManagerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(if (isCurrent) "${track.name} ✓" else track.name, color = if (isCurrent) Color(0xFF00E676) else Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(if (isCurrent) "${track.name} ✓" else track.name, color = if (isCurrent) Color(0xFF00E676) else Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text("Best Lap: ${formatNullableMs(track.bestLapMs)}", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
                 }
-                Button(onClick = { onSelectTrack(track) }) { Text("RACE") }
+                Button(onClick = { onSelectTrack(track) }) { Text("RACE", maxLines = 1) }
                 IconButton(onClick = { onDeleteTrack(track) }) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFFF5252)) }
             }
         }
         if (laps.isNotEmpty()) {
-            item {
-                Text("SAVED LAP LOGS (${laps.size})", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-            }
+            item { Text("SAVED LAP LOGS (${laps.size})", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold) }
             items(laps.take(20), key = { it.id }) { lap ->
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surface).padding(10.dp),
@@ -1616,19 +1411,20 @@ fun TrackManagerScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("${lap.trackName} • Lap #${lap.lapNumber}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("S1: ${formatNullableMs(lap.sector1Ms)} | S2: ${formatNullableMs(lap.sector2Ms)} | S3: ${formatNullableMs(lap.sector3Ms)}", color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                        Text("${lap.trackName} • Lap #${lap.lapNumber}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1)
+                        Text("S1: ${formatNullableMs(lap.sector1Ms)} | S2: ${formatNullableMs(lap.sector2Ms)} | S3: ${formatNullableMs(lap.sector3Ms)}", color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
                     }
                     Text(formatMsToSec(lap.lapTimeMs), color = Color(0xFF00E676), fontSize = 18.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
-                    IconButton(onClick = { onDeleteLap(lap) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete Lap", tint = Color(0xFFFF5252))
-                    }
+                    IconButton(onClick = { onDeleteLap(lap) }) { Icon(Icons.Default.Delete, contentDescription = "Delete Lap", tint = Color(0xFFFF5252)) }
                 }
             }
         }
     }
 }
 
+/**
+ * Fixed Slips & Export Studio Screen (Single-line Header + Uniform Rectangular Buttons!)
+ */
 @Composable
 fun RunHistoryScreen(
     runs: List<RunRecord>,
@@ -1650,44 +1446,90 @@ fun RunHistoryScreen(
         AlertDialog(
             onDismissRequest = { confirmClearAll = false },
             title = { Text("DELETE ALL LOGS?", fontWeight = FontWeight.Black) },
-            text = { Text("Are you sure you want to permanently delete all ${runs.size} recorded run logs?") },
+            text = { Text("Permanently delete all ${runs.size} recorded run logs?") },
             confirmButton = {
-                Button(
-                    onClick = { onClearAllRuns(); confirmClearAll = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))
-                ) { Text("DELETE ALL", color = Color.White, fontWeight = FontWeight.Bold) }
+                Button(onClick = { onClearAllRuns(); confirmClearAll = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))) {
+                    Text("DELETE ALL", color = Color.White, fontWeight = FontWeight.Bold)
+                }
             },
-            dismissButton = {
-                TextButton(onClick = { confirmClearAll = false }) { Text("CANCEL") }
-            }
+            dismissButton = { TextButton(onClick = { confirmClearAll = false }) { Text("CANCEL") } }
         )
     }
 
     LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Column(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF1E293B)))).padding(14.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF1E293B))))
+                    .border(1.dp, Color(0xFF2E3A4E), RoundedCornerShape(14.dp))
+                    .padding(12.dp)
             ) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("APEX TELEMETRY EXPORT STUDIO (${runs.size})", color = Color(0xFF00E676), fontWeight = FontWeight.Black, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "APEX EXPORT STUDIO (${runs.size})",
+                        color = Color(0xFF00E676),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 13.sp,
+                        fontFamily = FontFamily.Monospace,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
                     if (runs.isNotEmpty()) {
-                        TextButton(onClick = { confirmClearAll = true }) {
-                            Icon(Icons.Default.DeleteForever, contentDescription = null, tint = Color(0xFFFF5252), modifier = Modifier.size(16.dp))
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF2A1215))
+                                .border(1.dp, Color(0xFFFF5252).copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                .clickable { confirmClearAll = true }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.DeleteForever, contentDescription = "Clear All", tint = Color(0xFFFF5252), modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("CLEAR ALL", color = Color(0xFFFF5252), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("CLEAR ALL", color = Color(0xFFFF5252), fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                         }
                     }
                 }
-                Spacer(Modifier.height(6.dp))
+
+                Spacer(Modifier.height(10.dp))
+
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { primaryRun?.let { onSavePng(it) } }, enabled = primaryRun != null, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676), contentColor = Color.Black), modifier = Modifier.weight(1f)) {
-                        Text("SAVE PNG", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                    Button(
+                        onClick = { primaryRun?.let { onSavePng(it) } },
+                        enabled = primaryRun != null,
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676), contentColor = Color.Black),
+                        modifier = Modifier.weight(1f).height(40.dp)
+                    ) {
+                        Text("SAVE PNG", fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                     }
-                    Button(onClick = { primaryRun?.let { onShareSlip(it) } }, enabled = primaryRun != null, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00B0FF), contentColor = Color.Black), modifier = Modifier.weight(1f)) {
-                        Text("SAVE & SHARE PDF", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                    Button(
+                        onClick = { primaryRun?.let { onShareSlip(it) } },
+                        enabled = primaryRun != null,
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00B0FF), contentColor = Color.Black),
+                        modifier = Modifier.weight(1f).height(40.dp)
+                    ) {
+                        Text("SHARE PDF", fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                     }
-                    Button(onClick = onExportCsv, enabled = runs.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC400), contentColor = Color.Black), modifier = Modifier.weight(1f)) {
-                        Text("EXPORT CSV", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                    Button(
+                        onClick = onExportCsv,
+                        enabled = runs.isNotEmpty(),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC400), contentColor = Color.Black),
+                        modifier = Modifier.weight(1f).height(40.dp)
+                    ) {
+                        Text("EXPORT CSV", fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                     }
                 }
             }
@@ -1703,15 +1545,15 @@ fun RunHistoryScreen(
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("PASS #${run.id} • ${run.testMode} • ${run.vehicleName}", color = Color(0xFF00E676), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
-                        Text(SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(run.timestampEpochMs)), color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                        Text("PASS #${run.id} • ${run.testMode} • ${run.vehicleName}", color = Color(0xFF00E676), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(run.timestampEpochMs)), color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = { selectedCompareId = if (selectedCompareId == run.id) null else run.id }) {
-                            Text(if (isCompare) "OVERLAY ON" else "COMPARE", color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        TextButton(onClick = { selectedCompareId = if (selectedCompareId == run.id) null else run.id }, contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {
+                            Text(if (isCompare) "OVERLAY ON" else "COMPARE", color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                         }
-                        IconButton(onClick = { onDeleteRun(run) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete Log", tint = Color(0xFFFF5252))
+                        IconButton(onClick = { onDeleteRun(run) }, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete Log", tint = Color(0xFFFF5252), modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -1735,7 +1577,7 @@ fun RunComparisonGraph(primaryRun: RunRecord, comparisonRun: RunRecord?, useMph:
     ) {
         Text(
             text = if (comparisonRun != null) "TELEMETRY OVERLAY: #${primaryRun.id} (GREEN) vs #${comparisonRun.id} (CYAN)" else "VELOCITY & G-CURVE ANALYZER — PASS #${primaryRun.id}",
-            color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace
+            color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(8.dp))
         if (traceA.size < 2) {
@@ -1789,7 +1631,7 @@ fun MotorsportBottomNavBar(currentScreen: AppScreen, onNavigate: (AppScreen) -> 
                 selected = selected,
                 onClick = { onNavigate(screen) },
                 icon = { Icon(icon, contentDescription = label, modifier = Modifier.size(20.dp)) },
-                label = { Text(label, fontSize = 9.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold) },
+                label = { Text(label, fontSize = 9.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, maxLines = 1) },
                 colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF00E676), selectedTextColor = Color(0xFF00E676), unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = Color(0xFF1E293B))
             )
         }
@@ -1829,7 +1671,7 @@ fun GpsTopTelemetryBar(
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFF0D1118)).padding(horizontal = 6.dp, vertical = 3.dp)) {
-                Text("DA: ${uiState.weather.densityAltitudeFt} ft", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                Text("DA: ${uiState.weather.densityAltitudeFt} ft", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, maxLines = 1)
             }
             if (showNavIconsInTopBar) {
                 IconButton(onClick = { onNavigate(AppScreen.DASHBOARDS) }, modifier = Modifier.size(24.dp)) { Icon(Icons.Default.Speed, null, tint = Color.Gray) }
@@ -1897,7 +1739,7 @@ private fun PrimarySpeedAndTimerCard(dispSpeed: Double, speedUnit: String, uiSta
 @Composable
 private fun TrackPinControlsCard(activeTrack: TrackLayout?, currentLat: Double, currentLon: Double, onDropTrackPin: (Int) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).padding(12.dp)) {
-        Text("SATELLITE SECTOR PINS — ${activeTrack?.name ?: "Custom Track"}", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+        Text("SATELLITE SECTOR PINS — ${activeTrack?.name ?: "Custom Track"}", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, maxLines = 1)
         Text(String.format(Locale.US, "Live GPS: %.5f, %.5f", currentLat, currentLon), color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
         Spacer(Modifier.height(8.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1914,7 +1756,7 @@ private fun PinDropButton(label: String, isSet: Boolean, onClick: () -> Unit, mo
     Button(
         onClick = onClick, modifier = modifier, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
         colors = ButtonDefaults.buttonColors(containerColor = if (isSet) Color(0xFF064E3B) else Color(0xFF1E293B), contentColor = Color.White)
-    ) { Text(if (isSet) "$label ✓" else "+ $label", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) }
+    ) { Text(if (isSet) "$label ✓" else "+ $label", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1) }
 }
 
 @Composable
@@ -1963,16 +1805,16 @@ private fun SettingsCard(title: String, content: @Composable ColumnScope.() -> U
 @Composable
 fun MetricPill(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = Color.Gray, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-        Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+        Text(label, color = Color.Gray, fontSize = 9.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
+        Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1)
     }
 }
 
 @Composable
 fun SlipRow(label: String, value: String, highlight: Boolean = false) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = if (highlight) Color(0xFF00E676) else Color(0xFFB0BEC5), fontSize = 12.sp, fontWeight = if (highlight) FontWeight.Bold else FontWeight.Normal, fontFamily = FontFamily.Monospace)
-        Text(value, color = if (highlight) Color(0xFF00E676) else MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+        Text(label, color = if (highlight) Color(0xFF00E676) else Color(0xFFB0BEC5), fontSize = 12.sp, fontWeight = if (highlight) FontWeight.Bold else FontWeight.Normal, fontFamily = FontFamily.Monospace, maxLines = 1)
+        Text(value, color = if (highlight) Color(0xFF00E676) else MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1)
     }
 }
 

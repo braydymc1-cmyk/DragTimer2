@@ -63,10 +63,8 @@ data class TelemetryUiState(
 )
 
 class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
-
     private val binder = LocalBinder()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
     private lateinit var locationManager: LocationManager
     private lateinit var sensorManager: SensorManager
     private lateinit var database: AppDatabase
@@ -92,20 +90,13 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
     private var activeReactionMs: Long? = null
     private var activeRedLight: Boolean = false
 
-    private var split60ftMs: Long? = null
-    private var split330ftMs: Long? = null
-    private var splitEighthMs: Long? = null
-    private var speedEighthKmh: Double? = null
-    private var split1000ftMs: Long? = null
-    private var splitQuarterMs: Long? = null
-    private var speedQuarterKmh: Double? = null
-    private var splitHalfMileMs: Long? = null
-    private var speedHalfMileKmh: Double? = null
-    private var split0to100Ms: Long? = null
-    private var split100to150Ms: Long? = null
-    private var timeAt150Nanos: Long? = null
-    private var brakingStartSpeedKmh: Double = 100.0
-    private var peakRunG: Double = 0.0
+    private var split60ftMs: Long? = null; private var split330ftMs: Long? = null
+    private var splitEighthMs: Long? = null; private var speedEighthKmh: Double? = null
+    private var split1000ftMs: Long? = null; private var splitQuarterMs: Long? = null
+    private var speedQuarterKmh: Double? = null; private var splitHalfMileMs: Long? = null
+    private var speedHalfMileKmh: Double? = null; private var split0to100Ms: Long? = null
+    private var split100to150Ms: Long? = null; private var timeAt150Nanos: Long? = null
+    private var brakingStartSpeedKmh: Double = 100.0; private var peakRunG: Double = 0.0
     private var topSpeedPeakKmh: Double = 0.0
     private val activeTrace = mutableListOf<TelemetryPoint>()
 
@@ -121,10 +112,7 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
     private val recentFixTimesNanos = ArrayDeque<Long>(15)
     private var weatherFetchedOnce = false
 
-    inner class LocalBinder : Binder() {
-        fun getService(): GpsTelemetryService = this@GpsTelemetryService
-    }
-
+    inner class LocalBinder : Binder() { fun getService(): GpsTelemetryService = this@GpsTelemetryService }
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onCreate() {
@@ -139,11 +127,7 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
         extGnssManager = ExternalGnssManager(this) { lat, lon, speedMps, altM, sats ->
             onRawFixAvailable(SystemClock.elapsedRealtimeNanos(), lat, lon, speedMps, altM, 0.5f, sats)
         }
-
-        serviceScope.launch {
-            obdManager.metrics.collect { obd -> _uiState.value = _uiState.value.copy(obd = obd) }
-        }
-
+        serviceScope.launch { obdManager.metrics.collect { obd -> _uiState.value = _uiState.value.copy(obd = obd) } }
         acquireWakeLock()
         startForegroundServiceNotification()
         startRawGpsUpdates()
@@ -152,9 +136,7 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
         }
     }
 
-    private fun playTreeTone(toneType: Int, durationMs: Int) {
-        try { toneGen?.startTone(toneType, durationMs) } catch (_: Exception) {}
-    }
+    private fun playTreeTone(toneType: Int, durationMs: Int) { try { toneGen?.startTone(toneType, durationMs) } catch (_: Exception) {} }
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_LINEAR_ACCELERATION) {
@@ -163,7 +145,6 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
             _uiState.value = _uiState.value.copy(currentG = fusionFilter.longitudinalG, lateralG = fusionFilter.lateralG)
         }
     }
-
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     private val gnssCallback = object : GnssStatus.Callback() {
@@ -215,31 +196,20 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
         }
     }
 
-    fun updateActiveTrack(track: TrackLayout?) {
-        activeTrack = track
-        _uiState.value = _uiState.value.copy(bestLapMs = track?.bestLapMs)
-    }
-
-    fun setTestMode(mode: TestMode, track: TrackLayout? = null) {
-        disarmRun()
-        activeTrack = track
-        _uiState.value = _uiState.value.copy(mode = mode, latestRun = null, bestLapMs = track?.bestLapMs)
-    }
+    fun updateActiveTrack(track: TrackLayout?) { activeTrack = track; _uiState.value = _uiState.value.copy(bestLapMs = track?.bestLapMs) }
+    fun setTestMode(mode: TestMode, track: TrackLayout? = null) { disarmRun(); activeTrack = track; _uiState.value = _uiState.value.copy(mode = mode, latestRun = null, bestLapMs = track?.bestLapMs) }
 
     fun armSystem(track: TrackLayout? = null) {
         treeCountdownJob?.cancel()
         resetRunMetrics()
         if (track != null) activeTrack = track
-
         val mode = _uiState.value.mode
-        val nowNanos = SystemClock.elapsedRealtimeNanos()
         if (mode == TestMode.TOP_SPEED_LOG) {
-            runStartTimeNanos = nowNanos
+            runStartTimeNanos = SystemClock.elapsedRealtimeNanos()
             runStartDistanceM = cumulativeDistanceM
             runStartAltitudeM = _uiState.value.currentAltM
             topSpeedPeakKmh = _uiState.value.currentSpeedKmh
         }
-
         val nextStatus = when (mode) {
             TestMode.DRAG_TREE -> RunStatus.TREE_COUNTDOWN
             TestMode.QUARTER_MILE, TestMode.HALF_MILE, TestMode.ONE_MILE, TestMode.ACCEL_0_100 -> RunStatus.STAGED_STOP
@@ -248,38 +218,22 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
             TestMode.BRAKE_100_0 -> RunStatus.STAGED_BRAKE
             TestMode.TRACK_CIRCUIT -> RunStatus.TRACK_ACTIVE
         }
-
         _uiState.value = _uiState.value.copy(
             status = nextStatus,
             treeStage = if (mode == TestMode.DRAG_TREE) TreeStageState.PRE_STAGE else TreeStageState.OFF,
-            reactionTimeMs = null,
-            redLightJump = false,
-            liveElapsedMs = 0L,
-            liveDistanceM = 0.0,
+            reactionTimeMs = null, redLightJump = false, liveElapsedMs = 0L, liveDistanceM = 0.0,
             sessionMaxSpeedKmh = topSpeedPeakKmh,
             live60ftMs = null, live330ftMs = null, liveEighthMs = null, liveEighthSpeedKmh = null, live1000ftMs = null, live0to100Ms = null,
             peakG = 0.0
         )
-
         if (mode == TestMode.DRAG_TREE) startDragTreeSequence()
     }
 
     fun stopAndSaveTopSpeedLog() {
-        if (_uiState.value.status != RunStatus.TOP_SPEED_ACTIVE) {
-            disarmRun()
-            return
-        }
+        if (_uiState.value.status != RunStatus.TOP_SPEED_ACTIVE) { disarmRun(); return }
         val cfg = settingsRepo.settings.value
         val st = _uiState.value
-        finalizeRun(
-            mode = TestMode.TOP_SPEED_LOG,
-            primaryTimeMs = max(100L, st.liveElapsedMs),
-            trapSpeedKmh = max(topSpeedPeakKmh, st.currentSpeedKmh),
-            totalDistM = max(1.0, st.liveDistanceM),
-            endAltM = st.currentAltM,
-            hz = st.currentHz,
-            cfg = cfg
-        )
+        finalizeRun(TestMode.TOP_SPEED_LOG, max(100L, st.liveElapsedMs), max(topSpeedPeakKmh, st.currentSpeedKmh), max(1.0, st.liveDistanceM), st.currentAltM, st.currentHz, cfg)
     }
 
     private fun startDragTreeSequence() {
@@ -287,28 +241,20 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
         greenLightTimeNanos = 0L
         treeCountdownJob = serviceScope.launch {
             _uiState.value = _uiState.value.copy(treeStage = TreeStageState.PRE_STAGE)
-            playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70)
-            delay(650L)
+            playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70); delay(650L)
             _uiState.value = _uiState.value.copy(treeStage = TreeStageState.STAGE)
-            playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70)
-            delay(Random.nextLong(650L, 1250L))
-
+            playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70); delay(Random.nextLong(650L, 1250L))
             if (tree.isSimultaneous) {
                 _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_3)
-                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 120)
-                delay(tree.amberIntervalMs)
+                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 120); delay(tree.amberIntervalMs)
             } else {
                 _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_1)
-                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100)
-                delay(tree.amberIntervalMs)
+                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100); delay(tree.amberIntervalMs)
                 _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_2)
-                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100)
-                delay(tree.amberIntervalMs)
+                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100); delay(tree.amberIntervalMs)
                 _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_3)
-                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100)
-                delay(tree.amberIntervalMs)
+                playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100); delay(tree.amberIntervalMs)
             }
-
             greenLightTimeNanos = SystemClock.elapsedRealtimeNanos()
             if (_uiState.value.treeStage != TreeStageState.RED_FOUL) {
                 _uiState.value = _uiState.value.copy(treeStage = TreeStageState.GREEN)
@@ -337,15 +283,7 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
 
     override fun onLocationChanged(location: Location) {
         if (extGnssManager.isConnected) return
-        onRawFixAvailable(
-            elapsedNanos = location.elapsedRealtimeNanos,
-            lat = location.latitude,
-            lon = location.longitude,
-            rawSpeedMps = if (location.hasSpeed()) location.speed.toDouble() else 0.0,
-            altM = if (location.hasAltitude()) location.altitude else 0.0,
-            accM = if (location.hasAccuracy()) location.accuracy else 99f,
-            externalSats = null
-        )
+        onRawFixAvailable(location.elapsedRealtimeNanos, location.latitude, location.longitude, if (location.hasSpeed()) location.speed.toDouble() else 0.0, if (location.hasAltitude()) location.altitude else 0.0, if (location.hasAccuracy()) location.accuracy else 99f, null)
     }
 
     private fun onRawFixAvailable(elapsedNanos: Long, lat: Double, lon: Double, rawSpeedMps: Double, altM: Double, accM: Float, externalSats: Int?) {
@@ -360,39 +298,28 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
         val previous = prevSample
         var gpsAccelG = 0.0
         val dtSec = if (previous != null) (elapsedNanos - previous.elapsedNanos) / 1_000_000_000.0 else 0.0
-        if (previous != null && dtSec in 0.005..5.0) {
-            gpsAccelG = ((rawSpeedMps - previous.speedMps) / dtSec) / 9.80665
-        }
+        if (previous != null && dtSec in 0.005..5.0) gpsAccelG = ((rawSpeedMps - previous.speedMps) / dtSec) / 9.80665
 
         val fusedSpeedMps = fusionFilter.onGpsSpeedFix(rawSpeedMps, gpsAccelG, cfg.imuFusionEnabled)
         val speedKmh = fusedSpeedMps * 3.6
         val effectiveG = if (cfg.imuFusionEnabled && abs(fusionFilter.longitudinalG) > 0.05) fusionFilter.longitudinalG else gpsAccelG
-
-        if (previous != null && dtSec in 0.005..5.0) {
-            cumulativeDistanceM += 0.5 * (previous.speedMps + fusedSpeedMps) * dtSec
-        }
+        if (previous != null && dtSec in 0.005..5.0) cumulativeDistanceM += 0.5 * (previous.speedMps + fusedSpeedMps) * dtSec
 
         val currentSample = GpsSample(elapsedNanos, fusedSpeedMps, speedKmh, cumulativeDistanceM, altM, accM, effectiveG, fusionFilter.lateralG, lat, lon)
-
         if (!weatherFetchedOnce && lat != 0.0 && lon != 0.0) {
             weatherFetchedOnce = true
             _uiState.value = _uiState.value.copy(currentLat = lat, currentLon = lon, currentAltM = altM)
             refreshWeather()
         }
-
         if (previous != null) processStateMachine(previous, currentSample, hz, cfg)
         prevSample = currentSample
 
         _uiState.value = _uiState.value.copy(
-            currentSpeedKmh = speedKmh,
-            currentG = effectiveG,
-            lateralG = fusionFilter.lateralG,
-            accuracyM = accM,
-            currentHz = hz,
+            currentSpeedKmh = speedKmh, currentG = effectiveG, lateralG = fusionFilter.lateralG,
+            accuracyM = accM, currentHz = hz,
             currentLat = if (lat != 0.0) lat else _uiState.value.currentLat,
             currentLon = if (lon != 0.0) lon else _uiState.value.currentLon,
-            currentAltM = altM,
-            externalGnssActive = extGnssManager.isConnected,
+            currentAltM = altM, externalGnssActive = extGnssManager.isConnected,
             satellitesUsed = externalSats ?: _uiState.value.satellitesUsed
         )
     }
@@ -407,19 +334,13 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
     private fun processStateMachine(s1: GpsSample, s2: GpsSample, hz: Double, cfg: AppSettings) {
         val state = _uiState.value
         when (state.mode) {
-            TestMode.DRAG_TREE, TestMode.QUARTER_MILE, TestMode.HALF_MILE, TestMode.ONE_MILE, TestMode.ACCEL_0_100 ->
-                processStandingRun(state, s1, s2, hz, cfg)
+            TestMode.DRAG_TREE, TestMode.QUARTER_MILE, TestMode.HALF_MILE, TestMode.ONE_MILE, TestMode.ACCEL_0_100 -> processStandingRun(state, s1, s2, hz, cfg)
             TestMode.TOP_SPEED_LOG -> {
                 if (state.status == RunStatus.TOP_SPEED_ACTIVE) {
                     recordTelemetryPoint(s2)
                     peakRunG = max(peakRunG, abs(s2.longitudinalG))
                     topSpeedPeakKmh = max(topSpeedPeakKmh, s2.speedKmh)
-                    _uiState.value = _uiState.value.copy(
-                        liveElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L),
-                        liveDistanceM = max(0.0, s2.cumulativeDistanceM - runStartDistanceM),
-                        sessionMaxSpeedKmh = topSpeedPeakKmh,
-                        peakG = peakRunG
-                    )
+                    _uiState.value = _uiState.value.copy(liveElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L), liveDistanceM = max(0.0, s2.cumulativeDistanceM - runStartDistanceM), sessionMaxSpeedKmh = topSpeedPeakKmh, peakG = peakRunG)
                 }
             }
             TestMode.ROLL_100_200, TestMode.CUSTOM_SPEED -> processRollRun(state, s1, s2, hz, cfg)
@@ -447,7 +368,6 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
                         true
                     } else false
                 }
-
                 if (launchCrossed) {
                     if (state.mode == TestMode.DRAG_TREE) {
                         treeCountdownJob?.cancel()
@@ -481,31 +401,24 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
 
         val targetSprintKmh = if (cfg.useMph) 96.5606 else 100.0
         if (split0to100Ms == null && s2.speedKmh >= targetSprintKmh) {
-            val crossNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, targetSprintKmh)
-            split0to100Ms = max(0L, (crossNanos - runStartTimeNanos) / 1_000_000L)
+            split0to100Ms = max(0L, (TimingMath.interpolateTimeAtSpeed(s1, s2, targetSprintKmh) - runStartTimeNanos) / 1_000_000L)
             if (mode == TestMode.ACCEL_0_100) {
                 val endDist = TimingMath.interpolateDistanceAtSpeed(s1, s2, targetSprintKmh) - runStartDistanceM
-                val endAlt = TimingMath.interpolateAltitudeAtSpeed(s1, s2, targetSprintKmh)
-                finalizeRun(mode, split0to100Ms!!, targetSprintKmh, max(1.0, endDist), endAlt, hz, cfg)
+                finalizeRun(mode, split0to100Ms!!, targetSprintKmh, max(1.0, endDist), TimingMath.interpolateAltitudeAtSpeed(s1, s2, targetSprintKmh), hz, cfg)
                 return
             }
         }
-
         val target60 = runStartDistanceM + TimingConstants.DIST_60_FT_M
         if (split60ftMs == null && s2.cumulativeDistanceM >= target60) split60ftMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, target60) - runStartTimeNanos) / 1_000_000L)
-
         val target330 = runStartDistanceM + TimingConstants.DIST_330_FT_M
         if (split330ftMs == null && s2.cumulativeDistanceM >= target330) split330ftMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, target330) - runStartTimeNanos) / 1_000_000L)
-
         val targetEighth = runStartDistanceM + TimingConstants.DIST_EIGHTH_MILE_M
         if (splitEighthMs == null && s2.cumulativeDistanceM >= targetEighth) {
             splitEighthMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetEighth) - runStartTimeNanos) / 1_000_000L)
             speedEighthKmh = TimingMath.interpolateSpeedAtDistance(s1, s2, targetEighth)
         }
-
         val target1000 = runStartDistanceM + TimingConstants.DIST_1000_FT_M
         if (split1000ftMs == null && s2.cumulativeDistanceM >= target1000) split1000ftMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, target1000) - runStartTimeNanos) / 1_000_000L)
-
         val targetQuarter = runStartDistanceM + TimingConstants.DIST_QUARTER_MILE_M
         if (splitQuarterMs == null && s2.cumulativeDistanceM >= targetQuarter) {
             splitQuarterMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetQuarter) - runStartTimeNanos) / 1_000_000L)
@@ -515,7 +428,6 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
                 return
             }
         }
-
         val targetHalf = runStartDistanceM + TimingConstants.DIST_HALF_MILE_M
         if (splitHalfMileMs == null && s2.cumulativeDistanceM >= targetHalf) {
             splitHalfMileMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetHalf) - runStartTimeNanos) / 1_000_000L)
@@ -525,7 +437,6 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
                 return
             }
         }
-
         val targetMile = runStartDistanceM + TimingConstants.DIST_ONE_MILE_M
         if (mode == TestMode.ONE_MILE && s2.cumulativeDistanceM >= targetMile) {
             val mileMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetMile) - runStartTimeNanos) / 1_000_000L)
@@ -533,50 +444,38 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
             finalizeRun(mode, mileMs, mileSpd, TimingConstants.DIST_ONE_MILE_M, TimingMath.interpolateAltitudeAtDistance(s1, s2, targetMile), hz, cfg, mileMs, mileSpd)
             return
         }
-
-        _uiState.value = _uiState.value.copy(
-            liveElapsedMs = currentElapsedMs, liveDistanceM = currentRunDist,
-            live60ftMs = split60ftMs, live330ftMs = split330ftMs,
-            liveEighthMs = splitEighthMs, liveEighthSpeedKmh = speedEighthKmh,
-            live1000ftMs = split1000ftMs, live0to100Ms = split0to100Ms, peakG = peakRunG
-        )
+        _uiState.value = _uiState.value.copy(liveElapsedMs = currentElapsedMs, liveDistanceM = currentRunDist, live60ftMs = split60ftMs, live330ftMs = split330ftMs, liveEighthMs = splitEighthMs, liveEighthSpeedKmh = speedEighthKmh, live1000ftMs = split1000ftMs, live0to100Ms = split0to100Ms, peakG = peakRunG)
     }
 
     private fun processRollRun(state: TelemetryUiState, s1: GpsSample, s2: GpsSample, hz: Double, cfg: AppSettings) {
         val startTargetKmh = if (state.mode == TestMode.ROLL_100_200) (if (cfg.useMph) 96.5606 else 100.0) else cfg.customStartSpeedKmh
         val endTargetKmh = if (state.mode == TestMode.ROLL_100_200) (if (cfg.useMph) 209.2147 else 200.0) else cfg.customEndSpeedKmh
         val midTargetKmh = (startTargetKmh + endTargetKmh) * 0.5
-
         if (state.status == RunStatus.STAGED_ROLL && s1.speedKmh < startTargetKmh && s2.speedKmh >= startTargetKmh) {
             runStartTimeNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, startTargetKmh)
             runStartDistanceM = TimingMath.interpolateDistanceAtSpeed(s1, s2, startTargetKmh)
             runStartAltitudeM = TimingMath.interpolateAltitudeAtSpeed(s1, s2, startTargetKmh)
             _uiState.value = _uiState.value.copy(status = RunStatus.RUNNING)
         }
-
         if (_uiState.value.status == RunStatus.RUNNING) {
             if (s2.speedKmh < startTargetKmh - 10.0) { armSystem(); return }
             recordTelemetryPoint(s2)
             peakRunG = max(peakRunG, abs(s2.longitudinalG))
             val currentRunDist = max(0.0, s2.cumulativeDistanceM - runStartDistanceM)
             val currentElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L)
-
             if (split100to150Ms == null && s2.speedKmh >= midTargetKmh) {
                 val crossMid = TimingMath.interpolateTimeAtSpeed(s1, s2, midTargetKmh)
                 timeAt150Nanos = crossMid
                 split100to150Ms = max(0L, (crossMid - runStartTimeNanos) / 1_000_000L)
             }
-
             if (s2.speedKmh >= endTargetKmh) {
                 val finishNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, endTargetKmh)
                 val totalTimeMs = max(0L, (finishNanos - runStartTimeNanos) / 1_000_000L)
                 val endDistM = TimingMath.interpolateDistanceAtSpeed(s1, s2, endTargetKmh)
-                val endAltM = TimingMath.interpolateAltitudeAtSpeed(s1, s2, endTargetKmh)
                 val split150to200 = timeAt150Nanos?.let { max(0L, (finishNanos - it) / 1_000_000L) }
-                finalizeRun(state.mode, totalTimeMs, endTargetKmh, max(1.0, endDistM - runStartDistanceM), endAltM, hz, cfg, split150to200 = split150to200)
+                finalizeRun(state.mode, totalTimeMs, endTargetKmh, max(1.0, endDistM - runStartDistanceM), TimingMath.interpolateAltitudeAtSpeed(s1, s2, endTargetKmh), hz, cfg, split150to200 = split150to200)
                 return
             }
-
             _uiState.value = _uiState.value.copy(liveElapsedMs = currentElapsedMs, liveDistanceM = currentRunDist, peakG = peakRunG)
         }
     }
@@ -590,13 +489,11 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
             runStartAltitudeM = TimingMath.interpolateAltitudeAtSpeed(s1, s2, brakeStartKmh)
             _uiState.value = _uiState.value.copy(status = RunStatus.BRAKING_ACTIVE)
         }
-
         if (_uiState.value.status == RunStatus.BRAKING_ACTIVE) {
             recordTelemetryPoint(s2)
             peakRunG = max(peakRunG, abs(s2.longitudinalG))
             val currentDistM = max(0.0, s2.cumulativeDistanceM - runStartDistanceM)
             val currentElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L)
-
             if (s2.speedKmh <= 1.8) {
                 val finishNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, 0.0)
                 val stopTimeMs = max(100L, (finishNanos - runStartTimeNanos) / 1_000_000L)
@@ -605,7 +502,6 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
                 finalizeRun(TestMode.BRAKE_100_0, stopTimeMs, 0.0, stopDistM, s2.altitudeM, hz, cfg, brakeDistM = stopDistM, avgBrakeG = avgG)
                 return
             }
-
             _uiState.value = _uiState.value.copy(liveElapsedMs = currentElapsedMs, liveDistanceM = currentDistM, peakG = peakRunG)
         }
     }
@@ -613,14 +509,12 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
     private fun processTrackCircuit(state: TelemetryUiState, s1: GpsSample, s2: GpsSample) {
         if (state.status != RunStatus.TRACK_ACTIVE) return
         val track = activeTrack ?: return
-
         if (lapStartTimeNanos > 0L) {
             val liveLapMs = max(0L, (s2.elapsedNanos - lapStartTimeNanos) / 1_000_000L)
             lapMaxSpeedKmh = max(lapMaxSpeedKmh, s2.speedKmh)
             lapPeakLatG = max(lapPeakLatG, abs(s2.lateralG))
             if (s2.longitudinalG < 0) lapPeakBrakeG = max(lapPeakBrakeG, abs(s2.longitudinalG))
             recordTelemetryPoint(s2)
-
             if (sector1CrossNanos == null && track.sector1Lat != 0.0) {
                 TimingMath.checkSectorPinCrossing(s1, s2, track.sector1Lat, track.sector1Lon)?.let { cross ->
                     if (cross - lapStartTimeNanos > 3_000_000_000L) {
@@ -629,7 +523,6 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
                     }
                 }
             }
-
             if (sector1CrossNanos != null && sector2CrossNanos == null && track.sector2Lat != 0.0) {
                 TimingMath.checkSectorPinCrossing(s1, s2, track.sector2Lat, track.sector2Lon)?.let { cross ->
                     if (cross - sector1CrossNanos!! > 3_000_000_000L) {
@@ -638,14 +531,11 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
                     }
                 }
             }
-
             _uiState.value = _uiState.value.copy(currentLapMs = liveLapMs)
         }
-
         if (s2.elapsedNanos - lastPinTriggerNanos > 8_000_000_000L) {
             val finishLat = if (track.isCircuit || track.finishLat == 0.0) track.startLat else track.finishLat
             val finishLon = if (track.isCircuit || track.finishLon == 0.0) track.startLon else track.finishLon
-
             TimingMath.checkSectorPinCrossing(s1, s2, finishLat, finishLon)?.let { crossNanos ->
                 lastPinTriggerNanos = crossNanos
                 playTreeTone(ToneGenerator.TONE_PROP_ACK, 200)
@@ -657,25 +547,15 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
                     val delta = if (prevBest != null) totalLapMs - prevBest else 0L
                     val lapNum = _uiState.value.currentLapNumber
                     val traceJson = TelemetrySerializer.encodeTrace(activeTrace)
-
                     serviceScope.launch {
                         val vehicles = database.runDao().getAllVehiclesSnapshot()
                         val vName = vehicles.find { it.id == settingsRepo.settings.value.activeVehicleId }?.name ?: "Track Car"
-                        database.runDao().insertLap(TrackLapRecord(
-                            trackId = track.id, trackName = track.name, vehicleName = vName,
-                            timestampEpochMs = System.currentTimeMillis(), lapNumber = lapNum, lapTimeMs = totalLapMs,
-                            sector1Ms = _uiState.value.lastSector1Ms, sector2Ms = _uiState.value.lastSector2Ms, sector3Ms = s3Ms,
-                            maxSpeedKmh = lapMaxSpeedKmh, peakLatG = lapPeakLatG, peakBrakingG = lapPeakBrakeG, telemetryJson = traceJson
-                        ))
+                        database.runDao().insertLap(TrackLapRecord(trackId = track.id, trackName = track.name, vehicleName = vName, timestampEpochMs = System.currentTimeMillis(), lapNumber = lapNum, lapTimeMs = totalLapMs, sector1Ms = _uiState.value.lastSector1Ms, sector2Ms = _uiState.value.lastSector2Ms, sector3Ms = s3Ms, maxSpeedKmh = lapMaxSpeedKmh, peakLatG = lapPeakLatG, peakBrakingG = lapPeakBrakeG, telemetryJson = traceJson))
                         if (newBest != prevBest) database.runDao().insertTrack(track.copy(bestLapMs = newBest))
                     }
-
                     _uiState.value = _uiState.value.copy(currentLapNumber = lapNum + 1, lastSector3Ms = s3Ms, bestLapMs = newBest, liveDeltaMs = delta)
                 }
-
-                lapStartTimeNanos = crossNanos
-                runStartTimeNanos = crossNanos
-                runStartDistanceM = s2.cumulativeDistanceM
+                lapStartTimeNanos = crossNanos; runStartTimeNanos = crossNanos; runStartDistanceM = s2.cumulativeDistanceM
                 sector1CrossNanos = null; sector2CrossNanos = null
                 lapMaxSpeedKmh = 0.0; lapPeakLatG = 0.0; lapPeakBrakeG = 0.0
                 activeTrace.clear()
@@ -683,64 +563,23 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
         }
     }
 
-    private fun finalizeRun(
-        mode: TestMode,
-        primaryTimeMs: Long,
-        trapSpeedKmh: Double,
-        totalDistM: Double,
-        endAltM: Double,
-        hz: Double,
-        cfg: AppSettings,
-        oneMileMs: Long? = null,
-        oneMileSpeed: Double? = null,
-        split150to200: Long? = null,
-        brakeDistM: Double? = null,
-        avgBrakeG: Double? = null
-    ) {
+    private fun finalizeRun(mode: TestMode, primaryTimeMs: Long, trapSpeedKmh: Double, totalDistM: Double, endAltM: Double, hz: Double, cfg: AppSettings, oneMileMs: Long? = null, oneMileSpeed: Double? = null, split150to200: Long? = null, brakeDistM: Double? = null, avgBrakeG: Double? = null) {
         playTreeTone(ToneGenerator.TONE_PROP_ACK, 300)
         val slope = TimingMath.calculateSlopePercent(runStartAltitudeM, endAltM, totalDistM)
         val w = _uiState.value.weather
         val traceJson = TelemetrySerializer.encodeTrace(activeTrace)
-
         serviceScope.launch {
             val vehicles = database.runDao().getAllVehiclesSnapshot()
             val activeVehicle = vehicles.find { it.id == cfg.activeVehicleId }
             val record = RunRecord(
-                timestampEpochMs = System.currentTimeMillis(),
-                testMode = mode.name,
-                primaryTimeMs = primaryTimeMs,
-                trapSpeedKmh = trapSpeedKmh,
-                totalDistanceM = totalDistM,
-                time60ftMs = split60ftMs,
-                time330ftMs = split330ftMs,
-                timeEighthMileMs = splitEighthMs,
-                speedEighthMileKmh = speedEighthKmh,
-                time1000ftMs = split1000ftMs,
-                time0to100Ms = split0to100Ms,
-                time100to150Ms = split100to150Ms,
-                time150to200Ms = split150to200,
-                slopePercent = slope,
-                isValidSlope = slope >= -1.0,
-                peakG = peakRunG,
-                rolloutEnabled = cfg.rolloutEnabled,
-                gpsHz = hz,
-                reactionTimeMs = activeReactionMs,
-                redLightJump = activeRedLight,
-                treeType = if (mode == TestMode.DRAG_TREE) cfg.treeType.name else "NONE",
-                timeHalfMileMs = splitHalfMileMs,
-                speedHalfMileKmh = speedHalfMileKmh,
-                timeOneMileMs = oneMileMs,
-                speedOneMileKmh = oneMileSpeed,
-                brakingStartSpeedKmh = if (mode == TestMode.BRAKE_100_0) brakingStartSpeedKmh else null,
-                brakingDistanceM = brakeDistM,
-                avgBrakingG = avgBrakeG,
-                vehicleProfileId = activeVehicle?.id ?: 1L,
-                vehicleName = activeVehicle?.name ?: "Default Vehicle",
-                ambientTempC = w.tempC,
-                barometricPressureHpa = w.pressureHpa,
-                humidityPct = w.humidityPct,
-                densityAltitudeFt = w.densityAltitudeFt,
-                telemetryJson = traceJson
+                timestampEpochMs = System.currentTimeMillis(), testMode = mode.name, primaryTimeMs = primaryTimeMs, trapSpeedKmh = trapSpeedKmh, totalDistanceM = totalDistM,
+                time60ftMs = split60ftMs, time330ftMs = split330ftMs, timeEighthMileMs = splitEighthMs, speedEighthMileKmh = speedEighthKmh, time1000ftMs = split1000ftMs, time0to100Ms = split0to100Ms,
+                time100to150Ms = split100to150Ms, time150to200Ms = split150to200, slopePercent = slope, isValidSlope = slope >= -1.0, peakG = peakRunG, rolloutEnabled = cfg.rolloutEnabled, gpsHz = hz,
+                reactionTimeMs = activeReactionMs, redLightJump = activeRedLight, treeType = if (mode == TestMode.DRAG_TREE) cfg.treeType.name else "NONE",
+                timeHalfMileMs = splitHalfMileMs, speedHalfMileKmh = speedHalfMileKmh, timeOneMileMs = oneMileMs, speedOneMileKmh = oneMileSpeed,
+                brakingStartSpeedKmh = if (mode == TestMode.BRAKE_100_0) brakingStartSpeedKmh else null, brakingDistanceM = brakeDistM, avgBrakingG = avgBrakeG,
+                vehicleProfileId = activeVehicle?.id ?: 1L, vehicleName = activeVehicle?.name ?: "Default Vehicle",
+                ambientTempC = w.tempC, barometricPressureHpa = w.pressureHpa, humidityPct = w.humidityPct, densityAltitudeFt = w.densityAltitudeFt, telemetryJson = traceJson
             )
             database.runDao().insertRun(record)
             _uiState.value = _uiState.value.copy(status = RunStatus.COMPLETED, liveElapsedMs = record.primaryTimeMs, liveDistanceM = record.totalDistanceM, latestRun = record)
@@ -762,19 +601,15 @@ class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
             .setSmallIcon(R.drawable.ic_launcher_apex)
             .setOngoing(true)
             .build()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(1001, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
-        } else {
-            startForeground(1001, notification)
-        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) startForeground(1001, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+        else startForeground(1001, notification)
     }
 
     override fun onDestroy() {
         locationManager.removeUpdates(this)
         locationManager.unregisterGnssStatusCallback(gnssCallback)
         sensorManager.unregisterListener(this)
-        obdManager.disconnect()
-        extGnssManager.disconnect()
+        obdManager.disconnect(); extGnssManager.disconnect()
         try { toneGen?.release() } catch (_: Exception) {}
         wakeLock?.let { if (it.isHeld) it.release() }
         serviceScope.cancel()

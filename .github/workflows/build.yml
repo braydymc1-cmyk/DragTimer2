@@ -25,7 +25,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Generate Apex Telemetry v4.5 Project
+      - name: Generate Apex Telemetry v4.6 Project
         run: |
           mkdir -p app/src/main/java/com/performance/gpstimer
           mkdir -p app/src/main/res/drawable
@@ -37,9 +37,7 @@ jobs:
           EOF
 
           cat << 'EOF' > settings.gradle.kts
-          pluginManagement {
-              repositories { google(); mavenCentral(); gradlePluginPortal() }
-          }
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
               repositories { google(); mavenCentral() }
@@ -71,13 +69,10 @@ jobs:
                   applicationId = "com.performance.gpstimer"
                   minSdk = 26
                   targetSdk = 34
-                  versionCode = 6
-                  versionName = "4.5.0"
+                  versionCode = 7
+                  versionName = "4.6.0"
               }
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
+              compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
               kotlinOptions { jvmTarget = "17" }
               buildFeatures { compose = true }
           }
@@ -101,16 +96,11 @@ jobs:
 
           cat << 'EOF' > app/src/main/res/drawable/ic_launcher_apex.xml
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="108dp"
-              android:height="108dp"
-              android:viewportWidth="108"
-              android:viewportHeight="108">
+              android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
               <path android:fillColor="#0B0F17" android:pathData="M0,0h108v108h-108z"/>
               <path android:fillColor="#161F2E" android:pathData="M54,12A42,42 0,1 1,12 54A42,42 0,0 1,54 12z"/>
-              <path android:strokeColor="#00B0FF" android:strokeWidth="5" android:strokeLineCap="round"
-                  android:pathData="M26,76 A36,36 0,1 1,82 76"/>
-              <path android:strokeColor="#FF1744" android:strokeWidth="5.5" android:strokeLineCap="round"
-                  android:pathData="M74,24 A36,36 0,0 1,82 76"/>
+              <path android:strokeColor="#00B0FF" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M26,76 A36,36 0,1 1,82 76"/>
+              <path android:strokeColor="#FF1744" android:strokeWidth="5.5" android:strokeLineCap="round" android:pathData="M74,24 A36,36 0,0 1,82 76"/>
               <path android:fillColor="#00E676" android:pathData="M50,58 L76,30 L57,62 Z"/>
               <path android:fillColor="#FFFFFF" android:pathData="M54,48A6,6 0,1 1,48 54A6,6 0,0 1,54 48z"/>
               <path android:fillColor="#00E676" android:pathData="M36,82 h36 v6 h-36 z"/>
@@ -132,7 +122,6 @@ jobs:
               <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
               <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
               <uses-feature android:name="android.hardware.usb.host" android:required="false" />
-
               <application
                   android:allowBackup="true"
                   android:label="Apex Telemetry"
@@ -141,11 +130,7 @@ jobs:
                   android:supportsRtl="true"
                   android:usesCleartextTraffic="true"
                   android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
-                  <service
-                      android:name=".GpsTelemetryService"
-                      android:enabled="true"
-                      android:exported="false"
-                      android:foregroundServiceType="location" />
+                  <service android:name=".GpsTelemetryService" android:enabled="true" android:exported="false" android:foregroundServiceType="location" />
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
@@ -277,39 +262,9 @@ jobs:
               )
           )
 
-          data class WeatherSnapshot(
-              val tempC: Double = 22.0,
-              val pressureHpa: Double = 1013.25,
-              val humidityPct: Double = 45.0,
-              val altitudeM: Double = 15.0,
-              val densityAltitudeFt: Int = 450
-          )
-
-          data class ObdLiveMetrics(
-              val connected: Boolean = false,
-              val deviceName: String = "Disconnected",
-              val rpm: Int = 0,
-              val obdSpeedKmh: Int = 0,
-              val coolantTempC: Int = 86,
-              val intakeTempC: Int = 27,
-              val throttlePct: Double = 0.0,
-              val mapKpa: Int = 101,
-              val boostPsi: Double = 0.0,
-              val batteryVolts: Double = 13.8
-          )
-
-          data class TelemetryPoint(
-              val tMs: Long,
-              val speedKmh: Double,
-              val distM: Double,
-              val longG: Double,
-              val latG: Double = 0.0,
-              val rpm: Int = 0,
-              val boostPsi: Double = 0.0,
-              val throttlePct: Double = 0.0,
-              val lat: Double = 0.0,
-              val lon: Double = 0.0
-          )
+          data class WeatherSnapshot(val tempC: Double = 22.0, val pressureHpa: Double = 1013.25, val humidityPct: Double = 45.0, val altitudeM: Double = 15.0, val densityAltitudeFt: Int = 450)
+          data class ObdLiveMetrics(val connected: Boolean = false, val deviceName: String = "Disconnected", val rpm: Int = 0, val obdSpeedKmh: Int = 0, val coolantTempC: Int = 86, val intakeTempC: Int = 27, val throttlePct: Double = 0.0, val mapKpa: Int = 101, val boostPsi: Double = 0.0, val batteryVolts: Double = 13.8)
+          data class TelemetryPoint(val tMs: Long, val speedKmh: Double, val distM: Double, val longG: Double, val latG: Double = 0.0, val rpm: Int = 0, val boostPsi: Double = 0.0, val throttlePct: Double = 0.0, val lat: Double = 0.0, val lon: Double = 0.0)
 
           object TelemetrySerializer {
               fun encodeTrace(points: List<TelemetryPoint>): String {
@@ -318,17 +273,13 @@ jobs:
                   for (i in points.indices step step) {
                       val p = points[i]
                       arr.put(JSONObject().apply {
-                          put("t", p.tMs)
-                          put("v", (p.speedKmh * 100).roundToInt() / 100.0)
-                          put("d", (p.distM * 100).roundToInt() / 100.0)
-                          put("g", (p.longG * 100).roundToInt() / 100.0)
-                          put("lg", (p.latG * 100).roundToInt() / 100.0)
-                          put("r", p.rpm)
+                          put("t", p.tMs); put("v", (p.speedKmh * 100).roundToInt() / 100.0)
+                          put("d", (p.distM * 100).roundToInt() / 100.0); put("g", (p.longG * 100).roundToInt() / 100.0)
+                          put("lg", (p.latG * 100).roundToInt() / 100.0); put("r", p.rpm)
                       })
                   }
                   return arr.toString()
               }
-
               fun decodeTrace(json: String): List<TelemetryPoint> {
                   if (json.isBlank() || json == "[]") return emptyList()
                   val list = mutableListOf<TelemetryPoint>()
@@ -336,14 +287,7 @@ jobs:
                       val arr = JSONArray(json)
                       for (i in 0 until arr.length()) {
                           val o = arr.getJSONObject(i)
-                          list.add(TelemetryPoint(
-                              tMs = o.optLong("t", 0L),
-                              speedKmh = o.optDouble("v", 0.0),
-                              distM = o.optDouble("d", 0.0),
-                              longG = o.optDouble("g", 0.0),
-                              latG = o.optDouble("lg", 0.0),
-                              rpm = o.optInt("r", 0)
-                          ))
+                          list.add(TelemetryPoint(o.optLong("t", 0L), o.optDouble("v", 0.0), o.optDouble("d", 0.0), o.optDouble("g", 0.0), o.optDouble("lg", 0.0), o.optInt("r", 0)))
                       }
                   } catch (_: Exception) {}
                   return list
@@ -360,8 +304,7 @@ jobs:
               fun distUnit(useMph: Boolean): String = if (useMph) "ft" else "m"
               fun formatSpeed(kmh: Double, useMph: Boolean): String = String.format(Locale.US, "%.1f %s", speed(kmh, useMph), speedUnit(useMph))
               fun formatDist(meters: Double, useMph: Boolean): String = String.format(Locale.US, "%.1f %s", dist(meters, useMph), distUnit(useMph))
-              fun formatTemp(tempC: Double, useMph: Boolean): String =
-                  if (useMph) String.format(Locale.US, "%.0f°F", tempC * 9.0 / 5.0 + 32.0) else String.format(Locale.US, "%.0f°C", tempC)
+              fun formatTemp(tempC: Double, useMph: Boolean): String = if (useMph) String.format(Locale.US, "%.0f°F", tempC * 9.0 / 5.0 + 32.0) else String.format(Locale.US, "%.0f°C", tempC)
           }
 
           object WeatherCalculator {
@@ -374,12 +317,9 @@ jobs:
                   val daMeters = 44330.0 * (1.0 - (rho / 1.225).coerceIn(0.5, 1.3).pow(1.0 / 4.25588))
                   return WeatherSnapshot(tempC, pressureHpa, humidityPct, altitudeM, (daMeters * 3.28084).roundToInt())
               }
-
               suspend fun fetchLiveWeather(lat: Double, lon: Double, altM: Double): WeatherSnapshot? = withContext(Dispatchers.IO) {
                   try {
-                      val conn = (URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,surface_pressure").openConnection() as HttpURLConnection).apply {
-                          connectTimeout = 5000; readTimeout = 5000
-                      }
+                      val conn = (URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,surface_pressure").openConnection() as HttpURLConnection).apply { connectTimeout = 5000; readTimeout = 5000 }
                       if (conn.responseCode == 200) {
                           val cur = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).getJSONObject("current")
                           computeDensityAltitude(cur.optDouble("temperature_2m", 22.0), cur.optDouble("surface_pressure", 1013.25), cur.optDouble("relative_humidity_2m", 45.0), altM)
@@ -388,9 +328,6 @@ jobs:
               }
           }
 
-          /**
-           * Process-Wide Singleton Settings Repository so UI, Track Mode, and Service are always 100% in sync.
-           */
           class SettingsRepository private constructor(context: Context) {
               private val prefs = context.getSharedPreferences("apex_telemetry_prefs", Context.MODE_PRIVATE)
               private val _settings = MutableStateFlow(load())
@@ -461,18 +398,7 @@ jobs:
               }
           }
 
-          data class GpsSample(
-              val elapsedNanos: Long,
-              val speedMps: Double,
-              val speedKmh: Double,
-              val cumulativeDistanceM: Double,
-              val altitudeM: Double,
-              val accuracyM: Float,
-              val longitudinalG: Double,
-              val lateralG: Double = 0.0,
-              val latitude: Double = 0.0,
-              val longitude: Double = 0.0
-          )
+          data class GpsSample(val elapsedNanos: Long, val speedMps: Double, val speedKmh: Double, val cumulativeDistanceM: Double, val altitudeM: Double, val accuracyM: Float, val longitudinalG: Double, val lateralG: Double = 0.0, val latitude: Double = 0.0, val longitude: Double = 0.0)
 
           object TimingConstants {
               const val ONE_FOOT_M = 0.3048
@@ -506,7 +432,6 @@ jobs:
                   }
                   lastImuNanos = timestampNanos
               }
-
               fun onGpsSpeedFix(gpsSpeedMps: Double, gpsAccelG: Double, imuEnabled: Boolean): Double {
                   if (!imuEnabled) { fusedSpeedMps = gpsSpeedMps; longitudinalG = gpsAccelG; return gpsSpeedMps }
                   fusedSpeedMps = if (gpsSpeedMps < 0.35 && abs(longitudinalG) < 0.12) 0.0 else 0.78 * gpsSpeedMps + 0.22 * fusedSpeedMps
@@ -518,10 +443,8 @@ jobs:
               fun interpolateTimeAtSpeed(s1: GpsSample, s2: GpsSample, targetSpeedKmh: Double): Long {
                   val dv = s2.speedKmh - s1.speedKmh
                   if (abs(dv) < 1e-6) return s2.elapsedNanos
-                  val f = ((targetSpeedKmh - s1.speedKmh) / dv).coerceIn(0.0, 1.0)
-                  return s1.elapsedNanos + ((s2.elapsedNanos - s1.elapsedNanos) * f).toLong()
+                  return s1.elapsedNanos + ((s2.elapsedNanos - s1.elapsedNanos) * ((targetSpeedKmh - s1.speedKmh) / dv).coerceIn(0.0, 1.0)).toLong()
               }
-
               fun interpolateDistanceAtSpeed(s1: GpsSample, s2: GpsSample, targetSpeedKmh: Double): Double {
                   val crossNanos = interpolateTimeAtSpeed(s1, s2, targetSpeedKmh)
                   val dt = (crossNanos - s1.elapsedNanos) / 1_000_000_000.0
@@ -530,13 +453,11 @@ jobs:
                   val a = (s2.speedMps - s1.speedMps) / totalDt
                   return s1.cumulativeDistanceM + (s1.speedMps * dt) + (0.5 * a * dt * dt)
               }
-
               fun interpolateAltitudeAtSpeed(s1: GpsSample, s2: GpsSample, targetSpeedKmh: Double): Double {
                   val dv = s2.speedKmh - s1.speedKmh
                   if (abs(dv) < 1e-6) return s2.altitudeM
                   return s1.altitudeM + (s2.altitudeM - s1.altitudeM) * ((targetSpeedKmh - s1.speedKmh) / dv).coerceIn(0.0, 1.0)
               }
-
               fun interpolateTimeAtDistance(s1: GpsSample, s2: GpsSample, targetDistanceM: Double): Long {
                   val dx = s2.cumulativeDistanceM - s1.cumulativeDistanceM
                   if (dx <= 1e-6) return s2.elapsedNanos
@@ -553,23 +474,19 @@ jobs:
                   }
                   return s1.elapsedNanos + (tSec * 1_000_000_000.0).toLong()
               }
-
               fun interpolateSpeedAtDistance(s1: GpsSample, s2: GpsSample, targetDistanceM: Double): Double {
                   val cross = interpolateTimeAtDistance(s1, s2, targetDistanceM)
                   val tot = (s2.elapsedNanos - s1.elapsedNanos).toDouble()
                   if (tot <= 0.0) return s2.speedKmh
                   return s1.speedKmh + (s2.speedKmh - s1.speedKmh) * ((cross - s1.elapsedNanos) / tot).coerceIn(0.0, 1.0)
               }
-
               fun interpolateAltitudeAtDistance(s1: GpsSample, s2: GpsSample, targetDistanceM: Double): Double {
                   val dx = s2.cumulativeDistanceM - s1.cumulativeDistanceM
                   if (dx <= 1e-6) return s2.altitudeM
                   return s1.altitudeM + (s2.altitudeM - s1.altitudeM) * ((targetDistanceM - s1.cumulativeDistanceM) / dx).coerceIn(0.0, 1.0)
               }
-
               fun calculateSlopePercent(startAltM: Double, endAltM: Double, distanceM: Double): Double =
                   if (distanceM < 10.0) 0.0 else ((endAltM - startAltM) / distanceM) * 100.0
-
               fun haversineMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
                   if (lat1 == 0.0 && lon1 == 0.0) return Double.MAX_VALUE
                   val r = 6371000.0
@@ -578,7 +495,6 @@ jobs:
                   val a = sin(dLat / 2).pow(2.0) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2.0)
                   return 2.0 * r * atan2(sqrt(a), sqrt(1.0 - a))
               }
-
               fun checkSectorPinCrossing(s1: GpsSample, s2: GpsSample, pinLat: Double, pinLon: Double, gateRadiusM: Double = 24.0): Long? {
                   if (pinLat == 0.0 && pinLon == 0.0) return null
                   val d2 = haversineMeters(s2.latitude, s2.longitude, pinLat, pinLon)
@@ -630,87 +546,32 @@ jobs:
           )
 
           @Entity(tableName = "vehicle_profiles")
-          data class VehicleProfile(
-              @PrimaryKey(autoGenerate = true) val id: Long = 0,
-              val name: String,
-              val makeModel: String,
-              val weightKg: Double,
-              val drivetrain: String,
-              val notes: String = "",
-              @ColumnInfo(defaultValue = "''") val photoUri: String = ""
-          )
+          data class VehicleProfile(@PrimaryKey(autoGenerate = true) val id: Long = 0, val name: String, val makeModel: String, val weightKg: Double, val drivetrain: String, val notes: String = "", @ColumnInfo(defaultValue = "''") val photoUri: String = "")
 
           @Entity(tableName = "track_layouts")
-          data class TrackLayout(
-              @PrimaryKey(autoGenerate = true) val id: Long = 0,
-              val name: String,
-              val startLat: Double,
-              val startLon: Double,
-              val sector1Lat: Double = 0.0,
-              val sector1Lon: Double = 0.0,
-              val sector2Lat: Double = 0.0,
-              val sector2Lon: Double = 0.0,
-              val finishLat: Double = 0.0,
-              val finishLon: Double = 0.0,
-              val isCircuit: Boolean = true,
-              val bestLapMs: Long? = null
-          )
+          data class TrackLayout(@PrimaryKey(autoGenerate = true) val id: Long = 0, val name: String, val startLat: Double, val startLon: Double, val sector1Lat: Double = 0.0, val sector1Lon: Double = 0.0, val sector2Lat: Double = 0.0, val sector2Lon: Double = 0.0, val finishLat: Double = 0.0, val finishLon: Double = 0.0, val isCircuit: Boolean = true, val bestLapMs: Long? = null)
 
           @Entity(tableName = "track_laps")
-          data class TrackLapRecord(
-              @PrimaryKey(autoGenerate = true) val id: Long = 0,
-              val trackId: Long,
-              val trackName: String,
-              val vehicleName: String,
-              val timestampEpochMs: Long,
-              val lapNumber: Int,
-              val lapTimeMs: Long,
-              val sector1Ms: Long? = null,
-              val sector2Ms: Long? = null,
-              val sector3Ms: Long? = null,
-              val maxSpeedKmh: Double,
-              val peakLatG: Double,
-              val peakBrakingG: Double,
-              val telemetryJson: String = "[]"
-          )
+          data class TrackLapRecord(@PrimaryKey(autoGenerate = true) val id: Long = 0, val trackId: Long, val trackName: String, val vehicleName: String, val timestampEpochMs: Long, val lapNumber: Int, val lapTimeMs: Long, val sector1Ms: Long? = null, val sector2Ms: Long? = null, val sector3Ms: Long? = null, val maxSpeedKmh: Double, val peakLatG: Double, val peakBrakingG: Double, val telemetryJson: String = "[]")
 
           @Dao
           interface RunDao {
-              @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC")
-              fun getAllRuns(): Flow<List<RunRecord>>
-              @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC")
-              suspend fun getAllRunsSnapshot(): List<RunRecord>
-              @Insert(onConflict = OnConflictStrategy.REPLACE)
-              suspend fun insertRun(run: RunRecord): Long
-              @Delete
-              suspend fun deleteRun(run: RunRecord)
-              @Query("DELETE FROM performance_runs")
-              suspend fun clearAllRuns()
-
-              @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC")
-              fun getAllVehicles(): Flow<List<VehicleProfile>>
-              @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC")
-              suspend fun getAllVehiclesSnapshot(): List<VehicleProfile>
-              @Insert(onConflict = OnConflictStrategy.REPLACE)
-              suspend fun insertVehicle(vehicle: VehicleProfile): Long
-              @Delete
-              suspend fun deleteVehicle(vehicle: VehicleProfile)
-
-              @Query("SELECT * FROM track_layouts ORDER BY id ASC")
-              fun getAllTracks(): Flow<List<TrackLayout>>
-              @Query("SELECT * FROM track_layouts ORDER BY id ASC")
-              suspend fun getAllTracksSnapshot(): List<TrackLayout>
-              @Insert(onConflict = OnConflictStrategy.REPLACE)
-              suspend fun insertTrack(track: TrackLayout): Long
-              @Delete
-              suspend fun deleteTrack(track: TrackLayout)
-
-              @Query("SELECT * FROM track_laps ORDER BY timestampEpochMs DESC")
-              fun getAllLaps(): Flow<List<TrackLapRecord>>
-              @Insert(onConflict = OnConflictStrategy.REPLACE)
-              suspend fun insertLap(lap: TrackLapRecord): Long
-              @Delete
-              suspend fun deleteLap(lap: TrackLapRecord)
+              @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC") fun getAllRuns(): Flow<List<RunRecord>>
+              @Query("SELECT * FROM performance_runs ORDER BY timestampEpochMs DESC") suspend fun getAllRunsSnapshot(): List<RunRecord>
+              @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertRun(run: RunRecord): Long
+              @Delete suspend fun deleteRun(run: RunRecord)
+              @Query("DELETE FROM performance_runs") suspend fun clearAllRuns()
+              @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC") fun getAllVehicles(): Flow<List<VehicleProfile>>
+              @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC") suspend fun getAllVehiclesSnapshot(): List<VehicleProfile>
+              @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertVehicle(vehicle: VehicleProfile): Long
+              @Delete suspend fun deleteVehicle(vehicle: VehicleProfile)
+              @Query("SELECT * FROM track_layouts ORDER BY id ASC") fun getAllTracks(): Flow<List<TrackLayout>>
+              @Query("SELECT * FROM track_layouts ORDER BY id ASC") suspend fun getAllTracksSnapshot(): List<TrackLayout>
+              @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertTrack(track: TrackLayout): Long
+              @Delete suspend fun deleteTrack(track: TrackLayout)
+              @Query("SELECT * FROM track_laps ORDER BY timestampEpochMs DESC") fun getAllLaps(): Flow<List<TrackLapRecord>>
+              @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertLap(lap: TrackLapRecord): Long
+              @Delete suspend fun deleteLap(lap: TrackLapRecord)
           }
 
           @Database(entities = [RunRecord::class, VehicleProfile::class, TrackLayout::class, TrackLapRecord::class], version = 3, exportSchema = false)
@@ -756,13 +617,7 @@ jobs:
                                   CoroutineScope(Dispatchers.IO).launch {
                                       val dao = getInstance(context).runDao()
                                       if (dao.getAllTracksSnapshot().isEmpty()) {
-                                          dao.insertTrack(TrackLayout(
-                                              name = "Wanneroo Raceway (Barbagallo)",
-                                              startLat = -31.67432, startLon = 115.78685,
-                                              sector1Lat = -31.67108, sector1Lon = 115.78852,
-                                              sector2Lat = -31.67610, sector2Lon = 115.79160,
-                                              finishLat = -31.67432, finishLon = 115.78685, isCircuit = true
-                                          ))
+                                          dao.insertTrack(TrackLayout(name = "Wanneroo Raceway (Barbagallo)", startLat = -31.67432, startLon = 115.78685, sector1Lat = -31.67108, sector1Lon = 115.78852, sector2Lat = -31.67610, sector2Lon = 115.79160, finishLat = -31.67432, finishLon = 115.78685, isCircuit = true))
                                       }
                                   }
                               }
@@ -826,8 +681,7 @@ jobs:
                   } else if (c.startsWith("\$GNRMC") || c.startsWith("\$GPRMC")) {
                       val p = c.split(",")
                       if (p.size > 8 && p[2] == "A") {
-                          val lat = nmeaToDec(p[3], p[4])
-                          val lon = nmeaToDec(p[5], p[6])
+                          val lat = nmeaToDec(p[3], p[4]); val lon = nmeaToDec(p[5], p[6])
                           val spd = (p[7].toDoubleOrNull() ?: 0.0) * 0.514444
                           if (lat != 0.0 || lon != 0.0) onFix(lat, lon, spd, curAlt, curSats)
                       }
@@ -859,10 +713,8 @@ jobs:
                           val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
                           val device = bm?.adapter?.getRemoteDevice(macAddress) ?: return@launch
                           val btSocket = device.createRfcommSocketToServiceRecord(SPP_UUID)
-                          btSocket.connect()
-                          socket = btSocket
-                          val out = btSocket.outputStream
-                          val reader = btSocket.inputStream
+                          btSocket.connect(); socket = btSocket
+                          val out = btSocket.outputStream; val reader = btSocket.inputStream
                           listOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0").forEach { sendCmd(out, reader, it) }
                           _metrics.value = _metrics.value.copy(connected = true, deviceName = device.name ?: macAddress)
                           var slow = 0
@@ -871,9 +723,7 @@ jobs:
                               val map = parseByte(sendCmd(out, reader, "010B"), "410B") ?: _metrics.value.mapKpa
                               val thr = parseByte(sendCmd(out, reader, "0111"), "4111")?.let { (it * 100.0) / 255.0 } ?: _metrics.value.throttlePct
                               val spd = parseByte(sendCmd(out, reader, "010D"), "410D") ?: _metrics.value.obdSpeedKmh
-                              var ect = _metrics.value.coolantTempC
-                              var iat = _metrics.value.intakeTempC
-                              var v = _metrics.value.batteryVolts
+                              var ect = _metrics.value.coolantTempC; var iat = _metrics.value.intakeTempC; var v = _metrics.value.batteryVolts
                               if (slow++ % 8 == 0) {
                                   ect = parseByte(sendCmd(out, reader, "0105"), "4105")?.minus(40) ?: ect
                                   iat = parseByte(sendCmd(out, reader, "010F"), "410F")?.minus(40) ?: iat
@@ -884,11 +734,9 @@ jobs:
                       } catch (_: Exception) { _metrics.value = ObdLiveMetrics(connected = false) }
                   }
               }
-
               private fun sendCmd(out: OutputStream, input: InputStream, cmd: String): String {
                   out.write("$cmd\r".toByteArray()); out.flush()
-                  val sb = StringBuilder()
-                  val t0 = SystemClock.elapsedRealtime()
+                  val sb = StringBuilder(); val t0 = SystemClock.elapsedRealtime()
                   while (SystemClock.elapsedRealtime() - t0 < 200L) {
                       if (input.available() > 0) {
                           val c = input.read().toChar()
@@ -936,7 +784,6 @@ jobs:
                       } catch (_: Exception) { isConnected = false }
                   }
               }
-
               fun connectUsbCable(deviceIdStr: String) {
                   disconnect()
                   job = scope.launch {
@@ -979,7 +826,6 @@ jobs:
                       } catch (_: Exception) { isConnected = false }
                   }
               }
-
               fun disconnect() { job?.cancel(); try { btSocket?.close() } catch (_: Exception) {}; isConnected = false }
           }
 
@@ -996,7 +842,6 @@ jobs:
                   val pDash = Paint().apply { color = Color.GRAY; strokeWidth = 2f }
 
                   var y = 65f
-                  // Updated header per user request: APEX TELEMETRY
                   canvas.drawText("APEX TELEMETRY", w / 2f, y, pTitle); y += 34f
                   canvas.drawText(SimpleDateFormat("dd MMM yyyy  HH:mm:ss", Locale.US).format(Date(run.timestampEpochMs)), w / 2f, y, pSub); y += 30f
                   canvas.drawText("VEHICLE: ${run.vehicleName.uppercase()}", w / 2f, y, pSub); y += 26f
@@ -1054,10 +899,6 @@ jobs:
                   } catch (_: Exception) {}
               }
 
-              /**
-               * Generates a real PDF file, saves it into the phone's Downloads folder via MediaStore,
-               * and launches the Android Share chooser with the actual PDF attachment.
-               */
               fun shareTimeslipPdf(context: Context, run: RunRecord, useMph: Boolean) {
                   val bmp = renderTimeslipBitmap(run, useMph)
                   val pdf = PdfDocument()
@@ -1231,10 +1072,8 @@ jobs:
           )
 
           class GpsTelemetryService : Service(), LocationListener, SensorEventListener {
-
               private val binder = LocalBinder()
               private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
               private lateinit var locationManager: LocationManager
               private lateinit var sensorManager: SensorManager
               private lateinit var database: AppDatabase
@@ -1260,20 +1099,13 @@ jobs:
               private var activeReactionMs: Long? = null
               private var activeRedLight: Boolean = false
 
-              private var split60ftMs: Long? = null
-              private var split330ftMs: Long? = null
-              private var splitEighthMs: Long? = null
-              private var speedEighthKmh: Double? = null
-              private var split1000ftMs: Long? = null
-              private var splitQuarterMs: Long? = null
-              private var speedQuarterKmh: Double? = null
-              private var splitHalfMileMs: Long? = null
-              private var speedHalfMileKmh: Double? = null
-              private var split0to100Ms: Long? = null
-              private var split100to150Ms: Long? = null
-              private var timeAt150Nanos: Long? = null
-              private var brakingStartSpeedKmh: Double = 100.0
-              private var peakRunG: Double = 0.0
+              private var split60ftMs: Long? = null; private var split330ftMs: Long? = null
+              private var splitEighthMs: Long? = null; private var speedEighthKmh: Double? = null
+              private var split1000ftMs: Long? = null; private var splitQuarterMs: Long? = null
+              private var speedQuarterKmh: Double? = null; private var splitHalfMileMs: Long? = null
+              private var speedHalfMileKmh: Double? = null; private var split0to100Ms: Long? = null
+              private var split100to150Ms: Long? = null; private var timeAt150Nanos: Long? = null
+              private var brakingStartSpeedKmh: Double = 100.0; private var peakRunG: Double = 0.0
               private var topSpeedPeakKmh: Double = 0.0
               private val activeTrace = mutableListOf<TelemetryPoint>()
 
@@ -1289,10 +1121,7 @@ jobs:
               private val recentFixTimesNanos = ArrayDeque<Long>(15)
               private var weatherFetchedOnce = false
 
-              inner class LocalBinder : Binder() {
-                  fun getService(): GpsTelemetryService = this@GpsTelemetryService
-              }
-
+              inner class LocalBinder : Binder() { fun getService(): GpsTelemetryService = this@GpsTelemetryService }
               override fun onBind(intent: Intent?): IBinder = binder
 
               override fun onCreate() {
@@ -1307,11 +1136,7 @@ jobs:
                   extGnssManager = ExternalGnssManager(this) { lat, lon, speedMps, altM, sats ->
                       onRawFixAvailable(SystemClock.elapsedRealtimeNanos(), lat, lon, speedMps, altM, 0.5f, sats)
                   }
-
-                  serviceScope.launch {
-                      obdManager.metrics.collect { obd -> _uiState.value = _uiState.value.copy(obd = obd) }
-                  }
-
+                  serviceScope.launch { obdManager.metrics.collect { obd -> _uiState.value = _uiState.value.copy(obd = obd) } }
                   acquireWakeLock()
                   startForegroundServiceNotification()
                   startRawGpsUpdates()
@@ -1320,9 +1145,7 @@ jobs:
                   }
               }
 
-              private fun playTreeTone(toneType: Int, durationMs: Int) {
-                  try { toneGen?.startTone(toneType, durationMs) } catch (_: Exception) {}
-              }
+              private fun playTreeTone(toneType: Int, durationMs: Int) { try { toneGen?.startTone(toneType, durationMs) } catch (_: Exception) {} }
 
               override fun onSensorChanged(event: SensorEvent?) {
                   if (event?.sensor?.type == Sensor.TYPE_LINEAR_ACCELERATION) {
@@ -1331,7 +1154,6 @@ jobs:
                       _uiState.value = _uiState.value.copy(currentG = fusionFilter.longitudinalG, lateralG = fusionFilter.lateralG)
                   }
               }
-
               override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
               private val gnssCallback = object : GnssStatus.Callback() {
@@ -1383,31 +1205,20 @@ jobs:
                   }
               }
 
-              fun updateActiveTrack(track: TrackLayout?) {
-                  activeTrack = track
-                  _uiState.value = _uiState.value.copy(bestLapMs = track?.bestLapMs)
-              }
-
-              fun setTestMode(mode: TestMode, track: TrackLayout? = null) {
-                  disarmRun()
-                  activeTrack = track
-                  _uiState.value = _uiState.value.copy(mode = mode, latestRun = null, bestLapMs = track?.bestLapMs)
-              }
+              fun updateActiveTrack(track: TrackLayout?) { activeTrack = track; _uiState.value = _uiState.value.copy(bestLapMs = track?.bestLapMs) }
+              fun setTestMode(mode: TestMode, track: TrackLayout? = null) { disarmRun(); activeTrack = track; _uiState.value = _uiState.value.copy(mode = mode, latestRun = null, bestLapMs = track?.bestLapMs) }
 
               fun armSystem(track: TrackLayout? = null) {
                   treeCountdownJob?.cancel()
                   resetRunMetrics()
                   if (track != null) activeTrack = track
-
                   val mode = _uiState.value.mode
-                  val nowNanos = SystemClock.elapsedRealtimeNanos()
                   if (mode == TestMode.TOP_SPEED_LOG) {
-                      runStartTimeNanos = nowNanos
+                      runStartTimeNanos = SystemClock.elapsedRealtimeNanos()
                       runStartDistanceM = cumulativeDistanceM
                       runStartAltitudeM = _uiState.value.currentAltM
                       topSpeedPeakKmh = _uiState.value.currentSpeedKmh
                   }
-
                   val nextStatus = when (mode) {
                       TestMode.DRAG_TREE -> RunStatus.TREE_COUNTDOWN
                       TestMode.QUARTER_MILE, TestMode.HALF_MILE, TestMode.ONE_MILE, TestMode.ACCEL_0_100 -> RunStatus.STAGED_STOP
@@ -1416,38 +1227,22 @@ jobs:
                       TestMode.BRAKE_100_0 -> RunStatus.STAGED_BRAKE
                       TestMode.TRACK_CIRCUIT -> RunStatus.TRACK_ACTIVE
                   }
-
                   _uiState.value = _uiState.value.copy(
                       status = nextStatus,
                       treeStage = if (mode == TestMode.DRAG_TREE) TreeStageState.PRE_STAGE else TreeStageState.OFF,
-                      reactionTimeMs = null,
-                      redLightJump = false,
-                      liveElapsedMs = 0L,
-                      liveDistanceM = 0.0,
+                      reactionTimeMs = null, redLightJump = false, liveElapsedMs = 0L, liveDistanceM = 0.0,
                       sessionMaxSpeedKmh = topSpeedPeakKmh,
                       live60ftMs = null, live330ftMs = null, liveEighthMs = null, liveEighthSpeedKmh = null, live1000ftMs = null, live0to100Ms = null,
                       peakG = 0.0
                   )
-
                   if (mode == TestMode.DRAG_TREE) startDragTreeSequence()
               }
 
               fun stopAndSaveTopSpeedLog() {
-                  if (_uiState.value.status != RunStatus.TOP_SPEED_ACTIVE) {
-                      disarmRun()
-                      return
-                  }
+                  if (_uiState.value.status != RunStatus.TOP_SPEED_ACTIVE) { disarmRun(); return }
                   val cfg = settingsRepo.settings.value
                   val st = _uiState.value
-                  finalizeRun(
-                      mode = TestMode.TOP_SPEED_LOG,
-                      primaryTimeMs = max(100L, st.liveElapsedMs),
-                      trapSpeedKmh = max(topSpeedPeakKmh, st.currentSpeedKmh),
-                      totalDistM = max(1.0, st.liveDistanceM),
-                      endAltM = st.currentAltM,
-                      hz = st.currentHz,
-                      cfg = cfg
-                  )
+                  finalizeRun(TestMode.TOP_SPEED_LOG, max(100L, st.liveElapsedMs), max(topSpeedPeakKmh, st.currentSpeedKmh), max(1.0, st.liveDistanceM), st.currentAltM, st.currentHz, cfg)
               }
 
               private fun startDragTreeSequence() {
@@ -1455,28 +1250,20 @@ jobs:
                   greenLightTimeNanos = 0L
                   treeCountdownJob = serviceScope.launch {
                       _uiState.value = _uiState.value.copy(treeStage = TreeStageState.PRE_STAGE)
-                      playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70)
-                      delay(650L)
+                      playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70); delay(650L)
                       _uiState.value = _uiState.value.copy(treeStage = TreeStageState.STAGE)
-                      playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70)
-                      delay(Random.nextLong(650L, 1250L))
-
+                      playTreeTone(ToneGenerator.TONE_PROP_BEEP, 70); delay(Random.nextLong(650L, 1250L))
                       if (tree.isSimultaneous) {
                           _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_3)
-                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 120)
-                          delay(tree.amberIntervalMs)
+                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 120); delay(tree.amberIntervalMs)
                       } else {
                           _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_1)
-                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100)
-                          delay(tree.amberIntervalMs)
+                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100); delay(tree.amberIntervalMs)
                           _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_2)
-                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100)
-                          delay(tree.amberIntervalMs)
+                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100); delay(tree.amberIntervalMs)
                           _uiState.value = _uiState.value.copy(treeStage = TreeStageState.AMBER_3)
-                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100)
-                          delay(tree.amberIntervalMs)
+                          playTreeTone(ToneGenerator.TONE_CDMA_PIP, 100); delay(tree.amberIntervalMs)
                       }
-
                       greenLightTimeNanos = SystemClock.elapsedRealtimeNanos()
                       if (_uiState.value.treeStage != TreeStageState.RED_FOUL) {
                           _uiState.value = _uiState.value.copy(treeStage = TreeStageState.GREEN)
@@ -1505,15 +1292,7 @@ jobs:
 
               override fun onLocationChanged(location: Location) {
                   if (extGnssManager.isConnected) return
-                  onRawFixAvailable(
-                      elapsedNanos = location.elapsedRealtimeNanos,
-                      lat = location.latitude,
-                      lon = location.longitude,
-                      rawSpeedMps = if (location.hasSpeed()) location.speed.toDouble() else 0.0,
-                      altM = if (location.hasAltitude()) location.altitude else 0.0,
-                      accM = if (location.hasAccuracy()) location.accuracy else 99f,
-                      externalSats = null
-                  )
+                  onRawFixAvailable(location.elapsedRealtimeNanos, location.latitude, location.longitude, if (location.hasSpeed()) location.speed.toDouble() else 0.0, if (location.hasAltitude()) location.altitude else 0.0, if (location.hasAccuracy()) location.accuracy else 99f, null)
               }
 
               private fun onRawFixAvailable(elapsedNanos: Long, lat: Double, lon: Double, rawSpeedMps: Double, altM: Double, accM: Float, externalSats: Int?) {
@@ -1528,39 +1307,28 @@ jobs:
                   val previous = prevSample
                   var gpsAccelG = 0.0
                   val dtSec = if (previous != null) (elapsedNanos - previous.elapsedNanos) / 1_000_000_000.0 else 0.0
-                  if (previous != null && dtSec in 0.005..5.0) {
-                      gpsAccelG = ((rawSpeedMps - previous.speedMps) / dtSec) / 9.80665
-                  }
+                  if (previous != null && dtSec in 0.005..5.0) gpsAccelG = ((rawSpeedMps - previous.speedMps) / dtSec) / 9.80665
 
                   val fusedSpeedMps = fusionFilter.onGpsSpeedFix(rawSpeedMps, gpsAccelG, cfg.imuFusionEnabled)
                   val speedKmh = fusedSpeedMps * 3.6
                   val effectiveG = if (cfg.imuFusionEnabled && abs(fusionFilter.longitudinalG) > 0.05) fusionFilter.longitudinalG else gpsAccelG
-
-                  if (previous != null && dtSec in 0.005..5.0) {
-                      cumulativeDistanceM += 0.5 * (previous.speedMps + fusedSpeedMps) * dtSec
-                  }
+                  if (previous != null && dtSec in 0.005..5.0) cumulativeDistanceM += 0.5 * (previous.speedMps + fusedSpeedMps) * dtSec
 
                   val currentSample = GpsSample(elapsedNanos, fusedSpeedMps, speedKmh, cumulativeDistanceM, altM, accM, effectiveG, fusionFilter.lateralG, lat, lon)
-
                   if (!weatherFetchedOnce && lat != 0.0 && lon != 0.0) {
                       weatherFetchedOnce = true
                       _uiState.value = _uiState.value.copy(currentLat = lat, currentLon = lon, currentAltM = altM)
                       refreshWeather()
                   }
-
                   if (previous != null) processStateMachine(previous, currentSample, hz, cfg)
                   prevSample = currentSample
 
                   _uiState.value = _uiState.value.copy(
-                      currentSpeedKmh = speedKmh,
-                      currentG = effectiveG,
-                      lateralG = fusionFilter.lateralG,
-                      accuracyM = accM,
-                      currentHz = hz,
+                      currentSpeedKmh = speedKmh, currentG = effectiveG, lateralG = fusionFilter.lateralG,
+                      accuracyM = accM, currentHz = hz,
                       currentLat = if (lat != 0.0) lat else _uiState.value.currentLat,
                       currentLon = if (lon != 0.0) lon else _uiState.value.currentLon,
-                      currentAltM = altM,
-                      externalGnssActive = extGnssManager.isConnected,
+                      currentAltM = altM, externalGnssActive = extGnssManager.isConnected,
                       satellitesUsed = externalSats ?: _uiState.value.satellitesUsed
                   )
               }
@@ -1575,19 +1343,13 @@ jobs:
               private fun processStateMachine(s1: GpsSample, s2: GpsSample, hz: Double, cfg: AppSettings) {
                   val state = _uiState.value
                   when (state.mode) {
-                      TestMode.DRAG_TREE, TestMode.QUARTER_MILE, TestMode.HALF_MILE, TestMode.ONE_MILE, TestMode.ACCEL_0_100 ->
-                          processStandingRun(state, s1, s2, hz, cfg)
+                      TestMode.DRAG_TREE, TestMode.QUARTER_MILE, TestMode.HALF_MILE, TestMode.ONE_MILE, TestMode.ACCEL_0_100 -> processStandingRun(state, s1, s2, hz, cfg)
                       TestMode.TOP_SPEED_LOG -> {
                           if (state.status == RunStatus.TOP_SPEED_ACTIVE) {
                               recordTelemetryPoint(s2)
                               peakRunG = max(peakRunG, abs(s2.longitudinalG))
                               topSpeedPeakKmh = max(topSpeedPeakKmh, s2.speedKmh)
-                              _uiState.value = _uiState.value.copy(
-                                  liveElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L),
-                                  liveDistanceM = max(0.0, s2.cumulativeDistanceM - runStartDistanceM),
-                                  sessionMaxSpeedKmh = topSpeedPeakKmh,
-                                  peakG = peakRunG
-                              )
+                              _uiState.value = _uiState.value.copy(liveElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L), liveDistanceM = max(0.0, s2.cumulativeDistanceM - runStartDistanceM), sessionMaxSpeedKmh = topSpeedPeakKmh, peakG = peakRunG)
                           }
                       }
                       TestMode.ROLL_100_200, TestMode.CUSTOM_SPEED -> processRollRun(state, s1, s2, hz, cfg)
@@ -1615,7 +1377,6 @@ jobs:
                                   true
                               } else false
                           }
-
                           if (launchCrossed) {
                               if (state.mode == TestMode.DRAG_TREE) {
                                   treeCountdownJob?.cancel()
@@ -1649,31 +1410,24 @@ jobs:
 
                   val targetSprintKmh = if (cfg.useMph) 96.5606 else 100.0
                   if (split0to100Ms == null && s2.speedKmh >= targetSprintKmh) {
-                      val crossNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, targetSprintKmh)
-                      split0to100Ms = max(0L, (crossNanos - runStartTimeNanos) / 1_000_000L)
+                      split0to100Ms = max(0L, (TimingMath.interpolateTimeAtSpeed(s1, s2, targetSprintKmh) - runStartTimeNanos) / 1_000_000L)
                       if (mode == TestMode.ACCEL_0_100) {
                           val endDist = TimingMath.interpolateDistanceAtSpeed(s1, s2, targetSprintKmh) - runStartDistanceM
-                          val endAlt = TimingMath.interpolateAltitudeAtSpeed(s1, s2, targetSprintKmh)
-                          finalizeRun(mode, split0to100Ms!!, targetSprintKmh, max(1.0, endDist), endAlt, hz, cfg)
+                          finalizeRun(mode, split0to100Ms!!, targetSprintKmh, max(1.0, endDist), TimingMath.interpolateAltitudeAtSpeed(s1, s2, targetSprintKmh), hz, cfg)
                           return
                       }
                   }
-
                   val target60 = runStartDistanceM + TimingConstants.DIST_60_FT_M
                   if (split60ftMs == null && s2.cumulativeDistanceM >= target60) split60ftMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, target60) - runStartTimeNanos) / 1_000_000L)
-
                   val target330 = runStartDistanceM + TimingConstants.DIST_330_FT_M
                   if (split330ftMs == null && s2.cumulativeDistanceM >= target330) split330ftMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, target330) - runStartTimeNanos) / 1_000_000L)
-
                   val targetEighth = runStartDistanceM + TimingConstants.DIST_EIGHTH_MILE_M
                   if (splitEighthMs == null && s2.cumulativeDistanceM >= targetEighth) {
                       splitEighthMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetEighth) - runStartTimeNanos) / 1_000_000L)
                       speedEighthKmh = TimingMath.interpolateSpeedAtDistance(s1, s2, targetEighth)
                   }
-
                   val target1000 = runStartDistanceM + TimingConstants.DIST_1000_FT_M
                   if (split1000ftMs == null && s2.cumulativeDistanceM >= target1000) split1000ftMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, target1000) - runStartTimeNanos) / 1_000_000L)
-
                   val targetQuarter = runStartDistanceM + TimingConstants.DIST_QUARTER_MILE_M
                   if (splitQuarterMs == null && s2.cumulativeDistanceM >= targetQuarter) {
                       splitQuarterMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetQuarter) - runStartTimeNanos) / 1_000_000L)
@@ -1683,7 +1437,6 @@ jobs:
                           return
                       }
                   }
-
                   val targetHalf = runStartDistanceM + TimingConstants.DIST_HALF_MILE_M
                   if (splitHalfMileMs == null && s2.cumulativeDistanceM >= targetHalf) {
                       splitHalfMileMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetHalf) - runStartTimeNanos) / 1_000_000L)
@@ -1693,7 +1446,6 @@ jobs:
                           return
                       }
                   }
-
                   val targetMile = runStartDistanceM + TimingConstants.DIST_ONE_MILE_M
                   if (mode == TestMode.ONE_MILE && s2.cumulativeDistanceM >= targetMile) {
                       val mileMs = max(0L, (TimingMath.interpolateTimeAtDistance(s1, s2, targetMile) - runStartTimeNanos) / 1_000_000L)
@@ -1701,50 +1453,38 @@ jobs:
                       finalizeRun(mode, mileMs, mileSpd, TimingConstants.DIST_ONE_MILE_M, TimingMath.interpolateAltitudeAtDistance(s1, s2, targetMile), hz, cfg, mileMs, mileSpd)
                       return
                   }
-
-                  _uiState.value = _uiState.value.copy(
-                      liveElapsedMs = currentElapsedMs, liveDistanceM = currentRunDist,
-                      live60ftMs = split60ftMs, live330ftMs = split330ftMs,
-                      liveEighthMs = splitEighthMs, liveEighthSpeedKmh = speedEighthKmh,
-                      live1000ftMs = split1000ftMs, live0to100Ms = split0to100Ms, peakG = peakRunG
-                  )
+                  _uiState.value = _uiState.value.copy(liveElapsedMs = currentElapsedMs, liveDistanceM = currentRunDist, live60ftMs = split60ftMs, live330ftMs = split330ftMs, liveEighthMs = splitEighthMs, liveEighthSpeedKmh = speedEighthKmh, live1000ftMs = split1000ftMs, live0to100Ms = split0to100Ms, peakG = peakRunG)
               }
 
               private fun processRollRun(state: TelemetryUiState, s1: GpsSample, s2: GpsSample, hz: Double, cfg: AppSettings) {
                   val startTargetKmh = if (state.mode == TestMode.ROLL_100_200) (if (cfg.useMph) 96.5606 else 100.0) else cfg.customStartSpeedKmh
                   val endTargetKmh = if (state.mode == TestMode.ROLL_100_200) (if (cfg.useMph) 209.2147 else 200.0) else cfg.customEndSpeedKmh
                   val midTargetKmh = (startTargetKmh + endTargetKmh) * 0.5
-
                   if (state.status == RunStatus.STAGED_ROLL && s1.speedKmh < startTargetKmh && s2.speedKmh >= startTargetKmh) {
                       runStartTimeNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, startTargetKmh)
                       runStartDistanceM = TimingMath.interpolateDistanceAtSpeed(s1, s2, startTargetKmh)
                       runStartAltitudeM = TimingMath.interpolateAltitudeAtSpeed(s1, s2, startTargetKmh)
                       _uiState.value = _uiState.value.copy(status = RunStatus.RUNNING)
                   }
-
                   if (_uiState.value.status == RunStatus.RUNNING) {
                       if (s2.speedKmh < startTargetKmh - 10.0) { armSystem(); return }
                       recordTelemetryPoint(s2)
                       peakRunG = max(peakRunG, abs(s2.longitudinalG))
                       val currentRunDist = max(0.0, s2.cumulativeDistanceM - runStartDistanceM)
                       val currentElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L)
-
                       if (split100to150Ms == null && s2.speedKmh >= midTargetKmh) {
                           val crossMid = TimingMath.interpolateTimeAtSpeed(s1, s2, midTargetKmh)
                           timeAt150Nanos = crossMid
                           split100to150Ms = max(0L, (crossMid - runStartTimeNanos) / 1_000_000L)
                       }
-
                       if (s2.speedKmh >= endTargetKmh) {
                           val finishNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, endTargetKmh)
                           val totalTimeMs = max(0L, (finishNanos - runStartTimeNanos) / 1_000_000L)
                           val endDistM = TimingMath.interpolateDistanceAtSpeed(s1, s2, endTargetKmh)
-                          val endAltM = TimingMath.interpolateAltitudeAtSpeed(s1, s2, endTargetKmh)
                           val split150to200 = timeAt150Nanos?.let { max(0L, (finishNanos - it) / 1_000_000L) }
-                          finalizeRun(state.mode, totalTimeMs, endTargetKmh, max(1.0, endDistM - runStartDistanceM), endAltM, hz, cfg, split150to200 = split150to200)
+                          finalizeRun(state.mode, totalTimeMs, endTargetKmh, max(1.0, endDistM - runStartDistanceM), TimingMath.interpolateAltitudeAtSpeed(s1, s2, endTargetKmh), hz, cfg, split150to200 = split150to200)
                           return
                       }
-
                       _uiState.value = _uiState.value.copy(liveElapsedMs = currentElapsedMs, liveDistanceM = currentRunDist, peakG = peakRunG)
                   }
               }
@@ -1758,13 +1498,11 @@ jobs:
                       runStartAltitudeM = TimingMath.interpolateAltitudeAtSpeed(s1, s2, brakeStartKmh)
                       _uiState.value = _uiState.value.copy(status = RunStatus.BRAKING_ACTIVE)
                   }
-
                   if (_uiState.value.status == RunStatus.BRAKING_ACTIVE) {
                       recordTelemetryPoint(s2)
                       peakRunG = max(peakRunG, abs(s2.longitudinalG))
                       val currentDistM = max(0.0, s2.cumulativeDistanceM - runStartDistanceM)
                       val currentElapsedMs = max(0L, (s2.elapsedNanos - runStartTimeNanos) / 1_000_000L)
-
                       if (s2.speedKmh <= 1.8) {
                           val finishNanos = TimingMath.interpolateTimeAtSpeed(s1, s2, 0.0)
                           val stopTimeMs = max(100L, (finishNanos - runStartTimeNanos) / 1_000_000L)
@@ -1773,7 +1511,6 @@ jobs:
                           finalizeRun(TestMode.BRAKE_100_0, stopTimeMs, 0.0, stopDistM, s2.altitudeM, hz, cfg, brakeDistM = stopDistM, avgBrakeG = avgG)
                           return
                       }
-
                       _uiState.value = _uiState.value.copy(liveElapsedMs = currentElapsedMs, liveDistanceM = currentDistM, peakG = peakRunG)
                   }
               }
@@ -1781,14 +1518,12 @@ jobs:
               private fun processTrackCircuit(state: TelemetryUiState, s1: GpsSample, s2: GpsSample) {
                   if (state.status != RunStatus.TRACK_ACTIVE) return
                   val track = activeTrack ?: return
-
                   if (lapStartTimeNanos > 0L) {
                       val liveLapMs = max(0L, (s2.elapsedNanos - lapStartTimeNanos) / 1_000_000L)
                       lapMaxSpeedKmh = max(lapMaxSpeedKmh, s2.speedKmh)
                       lapPeakLatG = max(lapPeakLatG, abs(s2.lateralG))
                       if (s2.longitudinalG < 0) lapPeakBrakeG = max(lapPeakBrakeG, abs(s2.longitudinalG))
                       recordTelemetryPoint(s2)
-
                       if (sector1CrossNanos == null && track.sector1Lat != 0.0) {
                           TimingMath.checkSectorPinCrossing(s1, s2, track.sector1Lat, track.sector1Lon)?.let { cross ->
                               if (cross - lapStartTimeNanos > 3_000_000_000L) {
@@ -1797,7 +1532,6 @@ jobs:
                               }
                           }
                       }
-
                       if (sector1CrossNanos != null && sector2CrossNanos == null && track.sector2Lat != 0.0) {
                           TimingMath.checkSectorPinCrossing(s1, s2, track.sector2Lat, track.sector2Lon)?.let { cross ->
                               if (cross - sector1CrossNanos!! > 3_000_000_000L) {
@@ -1806,14 +1540,11 @@ jobs:
                               }
                           }
                       }
-
                       _uiState.value = _uiState.value.copy(currentLapMs = liveLapMs)
                   }
-
                   if (s2.elapsedNanos - lastPinTriggerNanos > 8_000_000_000L) {
                       val finishLat = if (track.isCircuit || track.finishLat == 0.0) track.startLat else track.finishLat
                       val finishLon = if (track.isCircuit || track.finishLon == 0.0) track.startLon else track.finishLon
-
                       TimingMath.checkSectorPinCrossing(s1, s2, finishLat, finishLon)?.let { crossNanos ->
                           lastPinTriggerNanos = crossNanos
                           playTreeTone(ToneGenerator.TONE_PROP_ACK, 200)
@@ -1825,25 +1556,15 @@ jobs:
                               val delta = if (prevBest != null) totalLapMs - prevBest else 0L
                               val lapNum = _uiState.value.currentLapNumber
                               val traceJson = TelemetrySerializer.encodeTrace(activeTrace)
-
                               serviceScope.launch {
                                   val vehicles = database.runDao().getAllVehiclesSnapshot()
                                   val vName = vehicles.find { it.id == settingsRepo.settings.value.activeVehicleId }?.name ?: "Track Car"
-                                  database.runDao().insertLap(TrackLapRecord(
-                                      trackId = track.id, trackName = track.name, vehicleName = vName,
-                                      timestampEpochMs = System.currentTimeMillis(), lapNumber = lapNum, lapTimeMs = totalLapMs,
-                                      sector1Ms = _uiState.value.lastSector1Ms, sector2Ms = _uiState.value.lastSector2Ms, sector3Ms = s3Ms,
-                                      maxSpeedKmh = lapMaxSpeedKmh, peakLatG = lapPeakLatG, peakBrakingG = lapPeakBrakeG, telemetryJson = traceJson
-                                  ))
+                                  database.runDao().insertLap(TrackLapRecord(trackId = track.id, trackName = track.name, vehicleName = vName, timestampEpochMs = System.currentTimeMillis(), lapNumber = lapNum, lapTimeMs = totalLapMs, sector1Ms = _uiState.value.lastSector1Ms, sector2Ms = _uiState.value.lastSector2Ms, sector3Ms = s3Ms, maxSpeedKmh = lapMaxSpeedKmh, peakLatG = lapPeakLatG, peakBrakingG = lapPeakBrakeG, telemetryJson = traceJson))
                                   if (newBest != prevBest) database.runDao().insertTrack(track.copy(bestLapMs = newBest))
                               }
-
                               _uiState.value = _uiState.value.copy(currentLapNumber = lapNum + 1, lastSector3Ms = s3Ms, bestLapMs = newBest, liveDeltaMs = delta)
                           }
-
-                          lapStartTimeNanos = crossNanos
-                          runStartTimeNanos = crossNanos
-                          runStartDistanceM = s2.cumulativeDistanceM
+                          lapStartTimeNanos = crossNanos; runStartTimeNanos = crossNanos; runStartDistanceM = s2.cumulativeDistanceM
                           sector1CrossNanos = null; sector2CrossNanos = null
                           lapMaxSpeedKmh = 0.0; lapPeakLatG = 0.0; lapPeakBrakeG = 0.0
                           activeTrace.clear()
@@ -1851,64 +1572,23 @@ jobs:
                   }
               }
 
-              private fun finalizeRun(
-                  mode: TestMode,
-                  primaryTimeMs: Long,
-                  trapSpeedKmh: Double,
-                  totalDistM: Double,
-                  endAltM: Double,
-                  hz: Double,
-                  cfg: AppSettings,
-                  oneMileMs: Long? = null,
-                  oneMileSpeed: Double? = null,
-                  split150to200: Long? = null,
-                  brakeDistM: Double? = null,
-                  avgBrakeG: Double? = null
-              ) {
+              private fun finalizeRun(mode: TestMode, primaryTimeMs: Long, trapSpeedKmh: Double, totalDistM: Double, endAltM: Double, hz: Double, cfg: AppSettings, oneMileMs: Long? = null, oneMileSpeed: Double? = null, split150to200: Long? = null, brakeDistM: Double? = null, avgBrakeG: Double? = null) {
                   playTreeTone(ToneGenerator.TONE_PROP_ACK, 300)
                   val slope = TimingMath.calculateSlopePercent(runStartAltitudeM, endAltM, totalDistM)
                   val w = _uiState.value.weather
                   val traceJson = TelemetrySerializer.encodeTrace(activeTrace)
-
                   serviceScope.launch {
                       val vehicles = database.runDao().getAllVehiclesSnapshot()
                       val activeVehicle = vehicles.find { it.id == cfg.activeVehicleId }
                       val record = RunRecord(
-                          timestampEpochMs = System.currentTimeMillis(),
-                          testMode = mode.name,
-                          primaryTimeMs = primaryTimeMs,
-                          trapSpeedKmh = trapSpeedKmh,
-                          totalDistanceM = totalDistM,
-                          time60ftMs = split60ftMs,
-                          time330ftMs = split330ftMs,
-                          timeEighthMileMs = splitEighthMs,
-                          speedEighthMileKmh = speedEighthKmh,
-                          time1000ftMs = split1000ftMs,
-                          time0to100Ms = split0to100Ms,
-                          time100to150Ms = split100to150Ms,
-                          time150to200Ms = split150to200,
-                          slopePercent = slope,
-                          isValidSlope = slope >= -1.0,
-                          peakG = peakRunG,
-                          rolloutEnabled = cfg.rolloutEnabled,
-                          gpsHz = hz,
-                          reactionTimeMs = activeReactionMs,
-                          redLightJump = activeRedLight,
-                          treeType = if (mode == TestMode.DRAG_TREE) cfg.treeType.name else "NONE",
-                          timeHalfMileMs = splitHalfMileMs,
-                          speedHalfMileKmh = speedHalfMileKmh,
-                          timeOneMileMs = oneMileMs,
-                          speedOneMileKmh = oneMileSpeed,
-                          brakingStartSpeedKmh = if (mode == TestMode.BRAKE_100_0) brakingStartSpeedKmh else null,
-                          brakingDistanceM = brakeDistM,
-                          avgBrakingG = avgBrakeG,
-                          vehicleProfileId = activeVehicle?.id ?: 1L,
-                          vehicleName = activeVehicle?.name ?: "Default Vehicle",
-                          ambientTempC = w.tempC,
-                          barometricPressureHpa = w.pressureHpa,
-                          humidityPct = w.humidityPct,
-                          densityAltitudeFt = w.densityAltitudeFt,
-                          telemetryJson = traceJson
+                          timestampEpochMs = System.currentTimeMillis(), testMode = mode.name, primaryTimeMs = primaryTimeMs, trapSpeedKmh = trapSpeedKmh, totalDistanceM = totalDistM,
+                          time60ftMs = split60ftMs, time330ftMs = split330ftMs, timeEighthMileMs = splitEighthMs, speedEighthMileKmh = speedEighthKmh, time1000ftMs = split1000ftMs, time0to100Ms = split0to100Ms,
+                          time100to150Ms = split100to150Ms, time150to200Ms = split150to200, slopePercent = slope, isValidSlope = slope >= -1.0, peakG = peakRunG, rolloutEnabled = cfg.rolloutEnabled, gpsHz = hz,
+                          reactionTimeMs = activeReactionMs, redLightJump = activeRedLight, treeType = if (mode == TestMode.DRAG_TREE) cfg.treeType.name else "NONE",
+                          timeHalfMileMs = splitHalfMileMs, speedHalfMileKmh = speedHalfMileKmh, timeOneMileMs = oneMileMs, speedOneMileKmh = oneMileSpeed,
+                          brakingStartSpeedKmh = if (mode == TestMode.BRAKE_100_0) brakingStartSpeedKmh else null, brakingDistanceM = brakeDistM, avgBrakingG = avgBrakeG,
+                          vehicleProfileId = activeVehicle?.id ?: 1L, vehicleName = activeVehicle?.name ?: "Default Vehicle",
+                          ambientTempC = w.tempC, barometricPressureHpa = w.pressureHpa, humidityPct = w.humidityPct, densityAltitudeFt = w.densityAltitudeFt, telemetryJson = traceJson
                       )
                       database.runDao().insertRun(record)
                       _uiState.value = _uiState.value.copy(status = RunStatus.COMPLETED, liveElapsedMs = record.primaryTimeMs, liveDistanceM = record.totalDistanceM, latestRun = record)
@@ -1930,19 +1610,15 @@ jobs:
                       .setSmallIcon(R.drawable.ic_launcher_apex)
                       .setOngoing(true)
                       .build()
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                      startForeground(1001, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
-                  } else {
-                      startForeground(1001, notification)
-                  }
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) startForeground(1001, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+                  else startForeground(1001, notification)
               }
 
               override fun onDestroy() {
                   locationManager.removeUpdates(this)
                   locationManager.unregisterGnssStatusCallback(gnssCallback)
                   sensorManager.unregisterListener(this)
-                  obdManager.disconnect()
-                  extGnssManager.disconnect()
+                  obdManager.disconnect(); extGnssManager.disconnect()
                   try { toneGen?.release() } catch (_: Exception) {}
                   wakeLock?.let { if (it.isHeld) it.release() }
                   serviceScope.cancel()
@@ -2034,20 +1710,15 @@ jobs:
 
           private val satelliteTileCache = ConcurrentHashMap<String, ImageBitmap>()
 
-          /**
-           * Procedural Carbon-Fiber Weave Texture drawn directly onto any Dashboard Canvas
-           */
           fun DrawScope.drawCarbonFiberTexture() {
               drawRect(Color(0xFF0A0D12))
-              val cellW = 14f
-              val cellH = 7f
+              val cellW = 14f; val cellH = 7f
               val cols = (size.width / cellW).toInt() + 1
               val rows = (size.height / cellH).toInt() + 1
               for (r in 0..rows) {
                   for (c in 0..cols) {
                       val shift = if (r % 2 == 0) 0f else cellW / 2f
-                      val x = c * cellW - shift
-                      val y = r * cellH
+                      val x = c * cellW - shift; val y = r * cellH
                       drawRect(Color(0xFF141A24), Offset(x, y), Size(cellW * 0.48f, cellH * 0.85f))
                       drawRect(Color(0xFF0E131B), Offset(x + cellW * 0.5f, y), Size(cellW * 0.48f, cellH * 0.85f))
                   }
@@ -2388,9 +2059,6 @@ jobs:
               }
           }
 
-          /**
-           * Finger-Draggable Satellite Map with Teardrop Sector Pins, Labels & 1-Tap Recenter on GPS
-           */
           @Composable
           fun NativeSatelliteTrackMap(
               currentLat: Double,
@@ -2411,7 +2079,6 @@ jobs:
               val latRad = Math.toRadians(safeLat.coerceIn(-85.0, 85.0))
               val carExactY = ((1.0 - ln(tan(latRad) + 1.0 / cos(latRad)) / PI) / 2.0) * n
 
-              // Apply finger pan offset in tile coordinates
               val viewExactX = carExactX - (panOffsetPx.x / tilePx)
               val viewExactY = carExactY - (panOffsetPx.y / tilePx)
               val centerTileX = viewExactX.toInt()
@@ -2421,14 +2088,13 @@ jobs:
                   withContext(Dispatchers.IO) {
                       for (dx in -1..1) {
                           for (dy in -1..1) {
-                              val tx = centerTileX + dx
-                              val ty = centerTileY + dy
+                              val tx = centerTileX + dx; val ty = centerTileY + dy
                               val key = "$zoom/$ty/$tx"
                               if (!satelliteTileCache.containsKey(key)) {
                                   try {
                                       val url = URL("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/$zoom/$ty/$tx")
                                       val conn = (url.openConnection() as HttpURLConnection).apply {
-                                          setRequestProperty("User-Agent", "ApexTelemetry/4.5")
+                                          setRequestProperty("User-Agent", "ApexTelemetry/4.6")
                                           connectTimeout = 5000; readTimeout = 5000
                                       }
                                       if (conn.responseCode == 200) {
@@ -2460,24 +2126,18 @@ jobs:
                   val trigger = tileUpdateCounter
                   Canvas(modifier = Modifier.fillMaxSize()) {
                       if (trigger >= 0) {
-                          val cx = size.width / 2f
-                          val cy = size.height / 2f
+                          val cx = size.width / 2f; val cy = size.height / 2f
                           val fracX = (viewExactX - centerTileX).toFloat()
                           val fracY = (viewExactY - centerTileY).toFloat()
 
                           for (dx in -2..2) {
                               for (dy in -2..2) {
-                                  val tx = centerTileX + dx
-                                  val ty = centerTileY + dy
+                                  val tx = centerTileX + dx; val ty = centerTileY + dy
                                   val img = satelliteTileCache["$zoom/$ty/$tx"]
                                   val left = cx + (dx - fracX) * tilePx
                                   val top = cy + (dy - fracY) * tilePx
                                   if (img != null) {
-                                      drawImage(
-                                          image = img,
-                                          dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
-                                          dstSize = IntSize(tilePx.roundToInt() + 2, tilePx.roundToInt() + 2)
-                                      )
+                                      drawImage(image = img, dstOffset = IntOffset(left.roundToInt(), top.roundToInt()), dstSize = IntSize(tilePx.roundToInt() + 2, tilePx.roundToInt() + 2))
                                   } else {
                                       drawRect(Color(0xFF0D1520), Offset(left, top), Size(tilePx, tilePx))
                                       drawRect(Color(0xFF1E293B), Offset(left, top), Size(tilePx, tilePx), style = Stroke(1f))
@@ -2490,9 +2150,7 @@ jobs:
                               val pxExact = ((lon + 180.0) / 360.0) * n
                               val r = Math.toRadians(lat.coerceIn(-85.0, 85.0))
                               val pyExact = ((1.0 - ln(tan(r) + 1.0 / cos(r)) / PI) / 2.0) * n
-                              val sx = cx + ((pxExact - viewExactX).toFloat() * tilePx)
-                              val sy = cy + ((pyExact - viewExactY).toFloat() * tilePx)
-                              return Offset(sx, sy)
+                              return Offset(cx + ((pxExact - viewExactX).toFloat() * tilePx), cy + ((pyExact - viewExactY).toFloat() * tilePx))
                           }
 
                           fun drawTeardropPin(pos: Offset, color: Color, label: String, colorInt: Int) {
@@ -2506,7 +2164,6 @@ jobs:
                               drawPath(p, color = color)
                               drawCircle(Color.White, radius = 4.5.dp.toPx(), center = Offset(pos.x, pos.y - 22.dp.toPx()))
 
-                              // Floating Label Pill above pin
                               drawRoundRect(
                                   color = Color(0xCC080B10),
                                   topLeft = Offset(pos.x - 26.dp.toPx(), pos.y - 54.dp.toPx()),
@@ -2514,8 +2171,7 @@ jobs:
                                   cornerRadius = CornerRadius(6f, 6f)
                               )
                               val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                                  this.color = colorInt
-                                  textSize = 24f
+                                  this.color = colorInt; textSize = 24f
                                   typeface = android.graphics.Typeface.create(android.graphics.Typeface.MONOSPACE, android.graphics.Typeface.BOLD)
                                   textAlign = android.graphics.Paint.Align.CENTER
                               }
@@ -2532,14 +2188,12 @@ jobs:
                               for (i in 0 until linePts.size - 1) {
                                   drawLine(Color(0xFF00B0FF).copy(alpha = 0.85f), linePts[i], linePts[i + 1], strokeWidth = 5f, cap = StrokeCap.Round)
                               }
-
                               pStart?.let { drawTeardropPin(it, Color(0xFF00E676), "START", android.graphics.Color.parseColor("#00E676")) }
                               pS1?.let { drawTeardropPin(it, Color(0xFF00B0FF), "SEC 1", android.graphics.Color.parseColor("#00B0FF")) }
                               pS2?.let { drawTeardropPin(it, Color(0xFFFFC400), "SEC 2", android.graphics.Color.parseColor("#FFC400")) }
                               pFin?.let { drawTeardropPin(it, Color(0xFFFF5252), "FINISH", android.graphics.Color.parseColor("#FF5252")) }
                           }
 
-                          // Draw Live Vehicle Position Beacon
                           latLonToScreen(safeLat, safeLon)?.let { carPos ->
                               drawCircle(Color(0xFF00E676).copy(alpha = 0.28f), radius = 20.dp.toPx(), center = carPos)
                               drawCircle(Color.White, radius = 9.dp.toPx(), center = carPos)
@@ -2554,7 +2208,7 @@ jobs:
                       verticalAlignment = Alignment.CenterVertically
                   ) {
                       Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.75f)).padding(horizontal = 8.dp, vertical = 4.dp)) {
-                          Text("DRAG MAP TO PAN • Z$zoom", color = Color(0xFF00E676), fontSize = 10.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                          Text("DRAG MAP • Z$zoom", color = Color(0xFF00E676), fontSize = 10.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
                       }
                       Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                           if (panOffsetPx != Offset.Zero) {
@@ -2566,7 +2220,7 @@ jobs:
                               ) {
                                   Icon(Icons.Default.MyLocation, contentDescription = "Recenter", modifier = Modifier.size(14.dp))
                                   Spacer(Modifier.width(4.dp))
-                                  Text("RECENTER", fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                                  Text("RECENTER", fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                               }
                           }
                           SmallFloatingActionButton(onClick = { zoom = (zoom - 1).coerceAtLeast(13) }, containerColor = Color(0xFF141B26), contentColor = Color.White, modifier = Modifier.size(32.dp)) {
@@ -2607,9 +2261,6 @@ jobs:
               }
           }
 
-          /**
-           * Carbon-Fiber Textured Motorsport Dashboards (All 4 styles selectable anywhere!)
-           */
           @Composable
           fun MotorsportDashboardView(
               uiState: TelemetryUiState,
@@ -2653,16 +2304,12 @@ jobs:
               }
 
               Column(modifier = Modifier.fillMaxWidth()) {
-                  // Interactive Style Selector Pills
                   Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                       DashStyle.entries.forEach { st ->
                           val isSelected = activeStyle == st
                           Button(
-                              onClick = {
-                                  activeStyle = st
-                                  onSelectStyle(st)
-                              },
-                              contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                              onClick = { activeStyle = st; onSelectStyle(st) },
+                              contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                               colors = ButtonDefaults.buttonColors(
                                   containerColor = if (isSelected) Color(0xFF00E676) else Color(0xFF1E293B),
                                   contentColor = if (isSelected) Color.Black else Color.White
@@ -2670,45 +2317,30 @@ jobs:
                               shape = RoundedCornerShape(8.dp),
                               modifier = Modifier.weight(1f).height(36.dp)
                           ) {
-                              Text(st.label, fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
+                              Text(st.label, fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis)
                           }
                       }
                   }
 
                   Spacer(Modifier.height(8.dp))
 
-                  // Carbon-Fiber Housing Container with Metallic Bezel
                   Box(
                       modifier = Modifier
                           .fillMaxWidth()
                           .clip(RoundedCornerShape(18.dp))
                           .border(2.5.dp, Brush.linearGradient(listOf(Color(0xFF475569), Color(0xFF1E293B), Color(0xFF64748B))), RoundedCornerShape(18.dp))
                   ) {
-                      Canvas(modifier = Modifier.matchParentSize()) {
-                          drawCarbonFiberTexture()
-                      }
+                      Canvas(modifier = Modifier.matchParentSize()) { drawCarbonFiberTexture() }
 
                       Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
-                          // 14-LED Recessed Shift-Light Array
                           Row(
-                              modifier = Modifier
-                                  .fillMaxWidth()
-                                  .clip(RoundedCornerShape(10.dp))
-                                  .background(Color(0xDD05070B))
-                                  .border(1.dp, Color(0xFF334155), RoundedCornerShape(10.dp))
-                                  .padding(horizontal = 10.dp, vertical = 7.dp),
+                              modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xDD05070B)).border(1.dp, Color(0xFF334155), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 7.dp),
                               horizontalArrangement = Arrangement.SpaceBetween
                           ) {
                               for (i in 0 until 14) {
                                   val lit = rpmRatio >= (i + 1) / 14f
                                   val col = if (i < 6) Color(0xFF00E676) else if (i < 10) Color(0xFFFFC400) else Color(0xFFFF1744)
-                                  Box(
-                                      modifier = Modifier
-                                          .size(15.dp)
-                                          .clip(CircleShape)
-                                          .background(if (lit) col else Color(0xFF161C26))
-                                          .border(1.dp, if (lit) Color.White else Color(0xFF2D3748), CircleShape)
-                                  )
+                                  Box(modifier = Modifier.size(15.dp).clip(CircleShape).background(if (lit) col else Color(0xFF161C26)).border(1.dp, if (lit) Color.White else Color(0xFF2D3748), CircleShape))
                               }
                           }
 
@@ -2721,12 +2353,7 @@ jobs:
                                       Text("$effectiveRpm / ${settings.redlineRpm} RPM", color = Color(0xFF00E676), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
                                   }
                                   Spacer(Modifier.height(4.dp))
-                                  LinearProgressIndicator(
-                                      progress = { rpmRatio },
-                                      modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)),
-                                      color = if (rpmRatio > 0.88f) Color(0xFFFF1744) else Color(0xFF00E676),
-                                      trackColor = Color(0xFF161F2C)
-                                  )
+                                  LinearProgressIndicator(progress = { rpmRatio }, modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(4.dp)), color = if (rpmRatio > 0.88f) Color(0xFFFF1744) else Color(0xFF00E676), trackColor = Color(0xFF161F2C))
                                   Spacer(Modifier.height(12.dp))
                                   Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                       Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2735,13 +2362,7 @@ jobs:
                                           DashBezelCell("LONG G", String.format(Locale.US, "%+.2f G", uiState.currentG), Color(0xFFFFC400))
                                       }
                                       Column(
-                                          modifier = Modifier
-                                              .weight(1.3f)
-                                              .padding(horizontal = 8.dp)
-                                              .clip(RoundedCornerShape(16.dp))
-                                              .background(Brush.verticalGradient(listOf(Color(0xFF0D131D), Color(0xFF05070B))))
-                                              .border(2.dp, Color(0xFF00E676), RoundedCornerShape(16.dp))
-                                              .padding(vertical = 10.dp),
+                                          modifier = Modifier.weight(1.3f).padding(horizontal = 8.dp).clip(RoundedCornerShape(16.dp)).background(Brush.verticalGradient(listOf(Color(0xFF0D131D), Color(0xFF05070B)))).border(2.dp, Color(0xFF00E676), RoundedCornerShape(16.dp)).padding(vertical = 10.dp),
                                           horizontalAlignment = Alignment.CenterHorizontally
                                       ) {
                                           Text("GEAR", color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
@@ -2759,9 +2380,9 @@ jobs:
 
                               DashStyle.ANALOG_TWIN -> {
                                   Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                                      GraphicalAnalogDial(title = "TACHOMETER", valueText = "$effectiveRpm", unitText = "RPM", maxScale = 8, fraction = rpmRatio, needleColor = Color(0xFFFF1744))
+                                      GraphicalAnalogDial("TACHOMETER", "$effectiveRpm", "RPM", 8, rpmRatio, Color(0xFFFF1744))
                                       GForceBallWidget(longG = uiState.currentG, latG = uiState.lateralG)
-                                      GraphicalAnalogDial(title = "SPEEDOMETER", valueText = String.format(Locale.US, "%.0f", speedVal), unitText = speedUnit, maxScale = 260, fraction = (uiState.currentSpeedKmh.toFloat() / 260f).coerceIn(0f, 1f), needleColor = Color(0xFF00E676))
+                                      GraphicalAnalogDial("SPEEDOMETER", String.format(Locale.US, "%.0f", speedVal), speedUnit, 260, (uiState.currentSpeedKmh.toFloat() / 260f).coerceIn(0f, 1f), Color(0xFF00E676))
                                   }
                                   Spacer(Modifier.height(10.dp))
                                   Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2784,15 +2405,10 @@ jobs:
                                       }
                                   }
                                   Spacer(Modifier.height(8.dp))
-                                  // Segmented Neon Power-Band Curve Bar
                                   Row(modifier = Modifier.fillMaxWidth().height(22.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                       for (seg in 0 until 24) {
                                           val activeSeg = rpmRatio >= (seg + 1) / 24f
-                                          val col = when {
-                                              seg < 12 -> Color(0xFF00B0FF)
-                                              seg < 19 -> Color(0xFF00E676)
-                                              else -> Color(0xFFFF1744)
-                                          }
+                                          val col = if (seg < 12) Color(0xFF00B0FF) else if (seg < 19) Color(0xFF00E676) else Color(0xFFFF1744)
                                           Box(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(if (activeSeg) col else Color(0xFF161F2C)))
                                       }
                                   }
@@ -2825,13 +2441,7 @@ jobs:
                                                   DashMetricType.DENSITY_ALT -> "${uiState.weather.densityAltitudeFt}ft"
                                               }
                                               Column(
-                                                  modifier = Modifier
-                                                      .weight(1f)
-                                                      .clip(RoundedCornerShape(10.dp))
-                                                      .background(Color(0xDD0A0E15))
-                                                      .border(1.5.dp, Color(0xFF334155), RoundedCornerShape(10.dp))
-                                                      .clickable { editingSlotIndex = idx }
-                                                      .padding(10.dp),
+                                                  modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Color(0xDD0A0E15)).border(1.5.dp, Color(0xFF334155), RoundedCornerShape(10.dp)).clickable { editingSlotIndex = idx }.padding(10.dp),
                                                   horizontalAlignment = Alignment.CenterHorizontally
                                               ) {
                                                   Text(m.label, color = Color(0xFF94A3B8), fontSize = 9.sp, maxLines = 1, fontFamily = FontFamily.Monospace)
@@ -2849,16 +2459,12 @@ jobs:
               }
           }
 
-          /**
-           * Realistic Analog Dial with Brushed Aluminum Bezel, Carbon Face, Numbered Ticks & Glowing Needle
-           */
           @Composable
           fun GraphicalAnalogDial(title: String, valueText: String, unitText: String, maxScale: Int, fraction: Float, needleColor: Color) {
               Box(modifier = Modifier.size(134.dp), contentAlignment = Alignment.Center) {
                   Canvas(modifier = Modifier.fillMaxSize()) {
                       val center = Offset(size.width / 2f, size.height / 2f)
                       val r = size.minDimension / 2f
-                      // Metallic outer ring + recessed inner carbon face
                       drawCircle(Brush.linearGradient(listOf(Color(0xFF64748B), Color(0xFF1E293B), Color(0xFF475569))), radius = r, center = center)
                       drawCircle(Color(0xFF06090E), radius = r - 5.dp.toPx(), center = center)
 
@@ -2869,8 +2475,7 @@ jobs:
                       drawArc(needleColor, 135f, 270f * fraction.coerceIn(0f, 1f), false, topLeft = Offset(arcInset, arcInset), size = arcSize, style = Stroke(7.dp.toPx(), cap = StrokeCap.Round))
 
                       val numPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                          color = android.graphics.Color.WHITE
-                          textSize = 20f
+                          color = android.graphics.Color.WHITE; textSize = 20f
                           typeface = android.graphics.Typeface.create(android.graphics.Typeface.MONOSPACE, android.graphics.Typeface.BOLD)
                           textAlign = android.graphics.Paint.Align.CENTER
                       }
@@ -2878,9 +2483,7 @@ jobs:
                       for (i in 0..8) {
                           val deg = 135f + (i / 8f) * 270f
                           val rad = Math.toRadians(deg.toDouble())
-                          val outerR = r - 7.dp.toPx()
-                          val innerR = outerR - 8.dp.toPx()
-                          val textR = r - 23.dp.toPx()
+                          val outerR = r - 7.dp.toPx(); val innerR = outerR - 8.dp.toPx(); val textR = r - 23.dp.toPx()
                           drawLine(
                               if (i >= 7) Color(0xFFFF1744) else Color.White,
                               Offset(center.x + (innerR * cos(rad)).toFloat(), center.y + (innerR * sin(rad)).toFloat()),
@@ -2888,12 +2491,7 @@ jobs:
                               strokeWidth = 2.5f
                           )
                           val numVal = if (maxScale <= 10) "$i" else "${(i * (maxScale / 8))}"
-                          drawContext.canvas.nativeCanvas.drawText(
-                              numVal,
-                              center.x + (textR * cos(rad)).toFloat(),
-                              center.y + (textR * sin(rad)).toFloat() + 6f,
-                              numPaint
-                          )
+                          drawContext.canvas.nativeCanvas.drawText(numVal, center.x + (textR * cos(rad)).toFloat(), center.y + (textR * sin(rad)).toFloat() + 6f, numPaint)
                       }
 
                       val needleDeg = 135f + 270f * fraction.coerceIn(0f, 1f)
@@ -2914,12 +2512,7 @@ jobs:
           @Composable
           private fun DashBezelCell(label: String, value: String, accent: Color, modifier: Modifier = Modifier) {
               Column(
-                  modifier = modifier
-                      .fillMaxWidth()
-                      .clip(RoundedCornerShape(8.dp))
-                      .background(Color(0xDD070A0F))
-                      .border(1.dp, Color(0xFF334155), RoundedCornerShape(8.dp))
-                      .padding(horizontal = 8.dp, vertical = 6.dp)
+                  modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0xDD070A0F)).border(1.dp, Color(0xFF334155), RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 6.dp)
               ) {
                   Text(label, color = Color(0xFF94A3B8), fontSize = 9.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
                   Text(value, color = accent, fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
@@ -2930,8 +2523,7 @@ jobs:
           fun GForceBallWidget(longG: Double, latG: Double) {
               Box(modifier = Modifier.size(88.dp), contentAlignment = Alignment.Center) {
                   Canvas(modifier = Modifier.fillMaxSize()) {
-                      val r = size.minDimension / 2f
-                      val center = Offset(size.width / 2f, size.height / 2f)
+                      val r = size.minDimension / 2f; val center = Offset(size.width / 2f, size.height / 2f)
                       drawCircle(Color(0xFF06090E), radius = r, center = center)
                       drawCircle(Color(0xFF475569), radius = r, center = center, style = Stroke(2.5f))
                       drawCircle(Color(0xFF1E293B), radius = r * 0.5f, center = center, style = Stroke(1.5f))
@@ -2966,12 +2558,7 @@ jobs:
 
               if (isFullScreenTreeActive) {
                   Column(
-                      modifier = Modifier
-                          .fillMaxSize()
-                          .clip(RoundedCornerShape(16.dp))
-                          .background(Color(0xFF080B10))
-                          .border(2.dp, Color(0xFF263238), RoundedCornerShape(16.dp))
-                          .padding(14.dp),
+                      modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(Color(0xFF080B10)).border(2.dp, Color(0xFF263238), RoundedCornerShape(16.dp)).padding(14.dp),
                       horizontalAlignment = Alignment.CenterHorizontally,
                       verticalArrangement = Arrangement.SpaceBetween
                   ) {
@@ -2979,33 +2566,15 @@ jobs:
                           Text(settings.treeType.label, color = Color(0xFFFFC400), fontWeight = FontWeight.Black, fontSize = 13.sp, fontFamily = FontFamily.Monospace)
                           TextButton(onClick = onExitTreeToHub) { Text("BACK TO HUB", color = Color(0xFF00B0FF), fontSize = 11.sp) }
                       }
-
-                      NhraDragLightingTree(
-                          stageState = uiState.treeStage,
-                          treeType = settings.treeType,
-                          reactionMs = uiState.reactionTimeMs,
-                          redLight = uiState.redLightJump,
-                          compactLandscape = isLandscape,
-                          modifier = Modifier.fillMaxWidth().weight(1f)
-                      )
-
+                      NhraDragLightingTree(uiState.treeStage, settings.treeType, uiState.reactionTimeMs, uiState.redLightJump, isLandscape, Modifier.fillMaxWidth().weight(1f))
                       Spacer(Modifier.height(10.dp))
-
                       Button(
                           onClick = onArmToggle,
                           modifier = Modifier.fillMaxWidth().height(56.dp),
                           shape = RoundedCornerShape(12.dp),
-                          colors = ButtonDefaults.buttonColors(
-                              containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676),
-                              contentColor = Color.Black
-                          )
+                          colors = ButtonDefaults.buttonColors(containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676), contentColor = Color.Black)
                       ) {
-                          Text(
-                              text = if (isArmedOrRunning) "WATCH LIGHTS — LAUNCH ON GREEN (TAP TO ABORT)" else "STAGE & START FULLSCREEN TREE (WITH AUDIO)",
-                              fontSize = 14.sp,
-                              fontWeight = FontWeight.Black,
-                              fontFamily = FontFamily.Monospace
-                          )
+                          Text(if (isArmedOrRunning) "WATCH LIGHTS — LAUNCH ON GREEN (ABORT)" else "STAGE & START FULLSCREEN TREE", fontSize = 14.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                       }
                   }
                   return
@@ -3028,38 +2597,15 @@ jobs:
                   }
 
                   if (uiState.mode == TestMode.TRACK_CIRCUIT) {
-                      NativeSatelliteTrackMap(
-                          currentLat = uiState.currentLat,
-                          currentLon = uiState.currentLon,
-                          activeTrack = activeTrack,
-                          modifier = Modifier.fillMaxWidth().height(if (isLandscape) 195.dp else 240.dp)
-                      )
+                      NativeSatelliteTrackMap(uiState.currentLat, uiState.currentLon, activeTrack, Modifier.fillMaxWidth().height(if (isLandscape) 195.dp else 240.dp))
                       Spacer(Modifier.height(8.dp))
                       TrackPinControlsCard(activeTrack, uiState.currentLat, uiState.currentLon, onDropTrackPin)
                       Spacer(Modifier.height(8.dp))
-                      MotorsportDashboardView(
-                          uiState = uiState,
-                          settings = settings,
-                          onSelectStyle = onSelectDashStyle,
-                          onUpdateSlotMetric = onUpdateDashSlot
-                      )
+                      MotorsportDashboardView(uiState, settings, onSelectDashStyle, onUpdateDashSlot)
                   } else {
-                      PrimarySpeedAndTimerCard(
-                          dispSpeed = dispSpeed,
-                          speedUnit = speedUnit,
-                          uiState = uiState,
-                          useMph = settings.useMph,
-                          compact = isLandscape,
-                          modifier = Modifier.fillMaxWidth()
-                      )
+                      PrimarySpeedAndTimerCard(dispSpeed, speedUnit, uiState, settings.useMph, isLandscape, Modifier.fillMaxWidth())
                       Spacer(Modifier.height(10.dp))
-                      TimeSlipCard(
-                          mode = uiState.mode,
-                          uiState = uiState,
-                          run = uiState.latestRun,
-                          useMph = settings.useMph,
-                          onShareTimeslip = onShareTimeslip
-                      )
+                      TimeSlipCard(uiState.mode, uiState, uiState.latestRun, settings.useMph, onShareTimeslip)
                   }
 
                   Spacer(Modifier.height(10.dp))
@@ -3076,28 +2622,17 @@ jobs:
                       onClick = onArmToggle,
                       modifier = Modifier.fillMaxWidth().height(52.dp),
                       shape = RoundedCornerShape(12.dp),
-                      colors = ButtonDefaults.buttonColors(
-                          containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676),
-                          contentColor = Color.Black
-                      )
+                      colors = ButtonDefaults.buttonColors(containerColor = if (isArmedOrRunning) Color(0xFFFF5252) else Color(0xFF00E676), contentColor = Color.Black)
                   ) {
-                      Text(btnLabel, fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
+                      Text(btnLabel, fontSize = 15.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                   }
               }
           }
 
           @Composable
-          fun NhraDragLightingTree(
-              stageState: TreeStageState,
-              treeType: TreeType,
-              reactionMs: Long?,
-              redLight: Boolean,
-              compactLandscape: Boolean = false,
-              modifier: Modifier = Modifier
-          ) {
+          fun NhraDragLightingTree(stageState: TreeStageState, treeType: TreeType, reactionMs: Long?, redLight: Boolean, compactLandscape: Boolean = false, modifier: Modifier = Modifier) {
               val bulbSize = if (compactLandscape) 36.dp else 48.dp
               val spacing = if (compactLandscape) 6.dp else 10.dp
-
               Column(
                   modifier = modifier.clip(RoundedCornerShape(14.dp)).background(Color(0xFF0D1017)).padding(12.dp),
                   horizontalAlignment = Alignment.CenterHorizontally,
@@ -3107,19 +2642,13 @@ jobs:
                   Spacer(Modifier.height(6.dp))
                   StagingBeamRow("STAGE", stageState.ordinal >= TreeStageState.STAGE.ordinal)
                   Spacer(Modifier.height(spacing))
-
                   val a1 = stageState == TreeStageState.AMBER_1 || (treeType.isSimultaneous && stageState == TreeStageState.AMBER_3)
                   val a2 = stageState == TreeStageState.AMBER_2 || (treeType.isSimultaneous && stageState == TreeStageState.AMBER_3)
                   val a3 = stageState == TreeStageState.AMBER_3
-
-                  TreeBulb(Color(0xFFFFB300), a1, bulbSize)
-                  Spacer(Modifier.height(spacing))
-                  TreeBulb(Color(0xFFFFB300), a2, bulbSize)
-                  Spacer(Modifier.height(spacing))
-                  TreeBulb(Color(0xFFFFB300), a3, bulbSize)
-                  Spacer(Modifier.height(spacing))
-                  TreeBulb(Color(0xFF00E676), stageState == TreeStageState.GREEN, bulbSize)
-                  Spacer(Modifier.height(spacing))
+                  TreeBulb(Color(0xFFFFB300), a1, bulbSize); Spacer(Modifier.height(spacing))
+                  TreeBulb(Color(0xFFFFB300), a2, bulbSize); Spacer(Modifier.height(spacing))
+                  TreeBulb(Color(0xFFFFB300), a3, bulbSize); Spacer(Modifier.height(spacing))
+                  TreeBulb(Color(0xFF00E676), stageState == TreeStageState.GREEN, bulbSize); Spacer(Modifier.height(spacing))
                   TreeBulb(Color(0xFFFF1744), stageState == TreeStageState.RED_FOUL || redLight, bulbSize)
               }
           }
@@ -3140,23 +2669,15 @@ jobs:
           }
 
           @Composable
-          fun TimeSlipCard(
-              mode: TestMode,
-              uiState: TelemetryUiState,
-              run: RunRecord?,
-              useMph: Boolean,
-              onShareTimeslip: (RunRecord) -> Unit
-          ) {
-              Column(
-                  modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface).padding(14.dp)
-              ) {
+          fun TimeSlipCard(mode: TestMode, uiState: TelemetryUiState, run: RunRecord?, useMph: Boolean, onShareTimeslip: (RunRecord) -> Unit) {
+              Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface).padding(14.dp)) {
                   Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                      Text("APEX TELEMETRY TIMESLIP", color = Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
+                      Text("APEX TELEMETRY TIMESLIP", color = Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.weight(1f), maxLines = 1)
                       if (run != null) {
-                          TextButton(onClick = { onShareTimeslip(run) }) {
-                              Icon(Icons.Default.Share, contentDescription = "Share Slip", tint = Color(0xFF00E676))
+                          TextButton(onClick = { onShareTimeslip(run) }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)) {
+                              Icon(Icons.Default.Share, contentDescription = "Share Slip", tint = Color(0xFF00E676), modifier = Modifier.size(16.dp))
                               Spacer(Modifier.width(4.dp))
-                              Text("EXPORT PDF", color = Color(0xFF00E676), fontSize = 11.sp)
+                              Text("EXPORT PDF", color = Color(0xFF00E676), fontSize = 11.sp, maxLines = 1)
                           }
                       }
                   }
@@ -3168,7 +2689,6 @@ jobs:
                   if (rt != null || mode == TestMode.DRAG_TREE) {
                       SlipRow("REACTION TIME (R/T)", if (rt != null) "${formatMsToSec(rt)} ${if (red) "(RED JUMP)" else "(GREEN)"}" else "--.---", highlight = true)
                   }
-
                   if (mode == TestMode.TOP_SPEED_LOG) {
                       val peakSpd = if (uiState.status == RunStatus.TOP_SPEED_ACTIVE) uiState.sessionMaxSpeedKmh else (run?.trapSpeedKmh ?: uiState.sessionMaxSpeedKmh)
                       SlipRow("PEAK TOP SPEED", UnitConverter.formatSpeed(peakSpd, useMph), highlight = true)
@@ -3209,18 +2729,11 @@ jobs:
               var obdDropdownExpanded by remember { mutableStateOf(false) }
               var showPreviousGnss by remember { mutableStateOf(false) }
               var gnssDropdownExpanded by remember { mutableStateOf(false) }
-
               var editingVehicle by remember { mutableStateOf<VehicleProfile?>(null) }
 
-              val allBtDevices = remember(settings.btObdAddress, showPreviousObd, showPreviousGnss) {
-                  HardwareDiscoveryHelper.getBluetoothDevices(context, settings.btObdAddress)
-              }
-              val usbGnssDevices = remember(settings.gnssSourceType, gnssDropdownExpanded) {
-                  HardwareDiscoveryHelper.getUsbGnssDevices(context)
-              }
-              val obdOptions = remember(allBtDevices, showPreviousObd) {
-                  if (showPreviousObd) allBtDevices else allBtDevices.filter { it.isCurrentlyConnected }
-              }
+              val allBtDevices = remember(settings.btObdAddress, showPreviousObd, showPreviousGnss) { HardwareDiscoveryHelper.getBluetoothDevices(context, settings.btObdAddress) }
+              val usbGnssDevices = remember(settings.gnssSourceType, gnssDropdownExpanded) { HardwareDiscoveryHelper.getUsbGnssDevices(context) }
+              val obdOptions = remember(allBtDevices, showPreviousObd) { if (showPreviousObd) allBtDevices else allBtDevices.filter { it.isCurrentlyConnected } }
               val gnssOptions = remember(usbGnssDevices, allBtDevices, showPreviousGnss, settings.gnssSourceType) {
                   when (settings.gnssSourceType) {
                       GnssSourceType.INTERNAL_GPS -> emptyList()
@@ -3261,18 +2774,11 @@ jobs:
                       },
                       confirmButton = {
                           Button(onClick = {
-                              onSaveVehicle(editingVehicle!!.copy(
-                                  name = if (eName.isBlank()) editingVehicle!!.name else eName.trim(),
-                                  makeModel = eModel.trim(),
-                                  weightKg = eWeight.toDoubleOrNull() ?: editingVehicle!!.weightKg,
-                                  drivetrain = eDrive
-                              ))
+                              onSaveVehicle(editingVehicle!!.copy(name = if (eName.isBlank()) editingVehicle!!.name else eName.trim(), makeModel = eModel.trim(), weightKg = eWeight.toDoubleOrNull() ?: editingVehicle!!.weightKg, drivetrain = eDrive))
                               editingVehicle = null
                           }) { Text("SAVE CHANGES") }
                       },
-                      dismissButton = {
-                          TextButton(onClick = { editingVehicle = null }) { Text("CANCEL") }
-                      }
+                      dismissButton = { TextButton(onClick = { editingVehicle = null }) { Text("CANCEL") } }
                   )
               }
 
@@ -3284,13 +2790,7 @@ jobs:
                           vehicles.forEach { v ->
                               val isSelected = settings.activeVehicleId == v.id
                               Row(
-                                  modifier = Modifier
-                                      .fillMaxWidth()
-                                      .clip(RoundedCornerShape(10.dp))
-                                      .background(Color(0xFF0D1118))
-                                      .border(if (isSelected) 1.5.dp else 0.dp, if (isSelected) Color(0xFF00E676) else Color.Transparent, RoundedCornerShape(10.dp))
-                                      .clickable { onUpdateSettings { it.copy(activeVehicleId = v.id) } }
-                                      .padding(8.dp),
+                                  modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xFF0D1118)).border(if (isSelected) 1.5.dp else 0.dp, if (isSelected) Color(0xFF00E676) else Color.Transparent, RoundedCornerShape(10.dp)).clickable { onUpdateSettings { it.copy(activeVehicleId = v.id) } }.padding(8.dp),
                                   verticalAlignment = Alignment.CenterVertically,
                                   horizontalArrangement = Arrangement.SpaceBetween
                               ) {
@@ -3298,22 +2798,16 @@ jobs:
                                       VehicleAvatarBadge(photoUri = v.photoUri, sizeDp = 46.dp, onClick = { onPickVehiclePhoto(v) })
                                       Spacer(Modifier.width(10.dp))
                                       Column {
-                                          Text(if (isSelected) "${v.name} (ACTIVE)" else v.name, color = if (isSelected) Color(0xFF00E676) else Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                          Text("${v.makeModel} • ${v.weightKg.toInt()}kg • ${v.drivetrain}", color = Color.Gray, fontSize = 11.sp)
+                                          Text(if (isSelected) "${v.name} (ACTIVE)" else v.name, color = if (isSelected) Color(0xFF00E676) else Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                          Text("${v.makeModel} • ${v.weightKg.toInt()}kg • ${v.drivetrain}", color = Color.Gray, fontSize = 11.sp, maxLines = 1)
                                       }
                                   }
                                   Row {
-                                      IconButton(onClick = { editingVehicle = v }) {
-                                          Icon(Icons.Default.Edit, contentDescription = "Edit Vehicle", tint = Color(0xFF00B0FF))
-                                      }
-                                      IconButton(
-                                          onClick = {
-                                              if (vehicles.size > 1) onDeleteVehicle(v)
-                                              else Toast.makeText(context, "Keep at least 1 vehicle profile", Toast.LENGTH_SHORT).show()
-                                          }
-                                      ) {
-                                          Icon(Icons.Default.Delete, contentDescription = "Delete Vehicle", tint = Color(0xFFFF5252))
-                                      }
+                                      IconButton(onClick = { editingVehicle = v }) { Icon(Icons.Default.Edit, contentDescription = "Edit Vehicle", tint = Color(0xFF00B0FF)) }
+                                      IconButton(onClick = {
+                                          if (vehicles.size > 1) onDeleteVehicle(v)
+                                          else Toast.makeText(context, "Keep at least 1 vehicle profile", Toast.LENGTH_SHORT).show()
+                                      }) { Icon(Icons.Default.Delete, contentDescription = "Delete Vehicle", tint = Color(0xFFFF5252)) }
                                   }
                               }
                               Spacer(Modifier.height(6.dp))
@@ -3335,18 +2829,16 @@ jobs:
                   item {
                       SettingsCard("OBD-II & EXTERNAL GNSS HARDWARE") {
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                              Text("Show Previously Connected OBD", color = Color.Gray, fontSize = 12.sp)
+                              Text("Show Previously Connected OBD", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.weight(1f))
                               Switch(checked = showPreviousObd, onCheckedChange = { showPreviousObd = it })
                           }
                           Box(modifier = Modifier.fillMaxWidth()) {
                               OutlinedButton(onClick = { obdDropdownExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-                                  Text(if (settings.btObdName.isNotBlank()) "OBD: ${settings.btObdName}" else "Select OBD-II Adapter (${obdOptions.size}) ▼", color = Color(0xFF00E676))
+                                  Text(if (settings.btObdName.isNotBlank()) "OBD: ${settings.btObdName}" else "Select OBD-II Adapter (${obdOptions.size}) ▼", color = Color(0xFF00E676), maxLines = 1)
                               }
                               DropdownMenu(expanded = obdDropdownExpanded, onDismissRequest = { obdDropdownExpanded = false }) {
                                   DropdownMenuItem(text = { Text("Disconnect") }, onClick = { onSelectObd("", ""); obdDropdownExpanded = false })
-                                  obdOptions.forEach { dev ->
-                                      DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectObd(dev.id, dev.name); obdDropdownExpanded = false })
-                                  }
+                                  obdOptions.forEach { dev -> DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectObd(dev.id, dev.name); obdDropdownExpanded = false }) }
                               }
                           }
                           Spacer(Modifier.height(10.dp))
@@ -3356,26 +2848,25 @@ jobs:
                                   Button(
                                       onClick = { onSelectGnss(src, settings.gnssDeviceId, settings.gnssDeviceName) },
                                       colors = ButtonDefaults.buttonColors(containerColor = if (sel) Color(0xFF00B0FF) else Color(0xFF1E293B), contentColor = if (sel) Color.Black else Color.White),
+                                      contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                                       modifier = Modifier.weight(1f)
                                   ) {
-                                      Text(if (src == GnssSourceType.INTERNAL_GPS) "PHONE" else if (src == GnssSourceType.USB_CABLE_GNSS) "USB OTG" else "BT GNSS", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                      Text(if (src == GnssSourceType.INTERNAL_GPS) "PHONE" else if (src == GnssSourceType.USB_CABLE_GNSS) "USB OTG" else "BT GNSS", fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                                   }
                               }
                           }
                           if (settings.gnssSourceType != GnssSourceType.INTERNAL_GPS) {
                               Spacer(Modifier.height(6.dp))
                               Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                  Text("Show Previously Connected GNSS", color = Color.Gray, fontSize = 12.sp)
+                                  Text("Show Previously Connected GNSS", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.weight(1f))
                                   Switch(checked = showPreviousGnss, onCheckedChange = { showPreviousGnss = it })
                               }
                               Box(modifier = Modifier.fillMaxWidth()) {
                                   OutlinedButton(onClick = { gnssDropdownExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-                                      Text(if (settings.gnssDeviceName.isNotBlank()) "GNSS: ${settings.gnssDeviceName}" else "Select GNSS Receiver (${gnssOptions.size}) ▼", color = Color(0xFF00B0FF))
+                                      Text(if (settings.gnssDeviceName.isNotBlank()) "GNSS: ${settings.gnssDeviceName}" else "Select GNSS Receiver (${gnssOptions.size}) ▼", color = Color(0xFF00B0FF), maxLines = 1)
                                   }
                                   DropdownMenu(expanded = gnssDropdownExpanded, onDismissRequest = { gnssDropdownExpanded = false }) {
-                                      gnssOptions.forEach { dev ->
-                                          DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectGnss(settings.gnssSourceType, dev.id, dev.name); gnssDropdownExpanded = false })
-                                      }
+                                      gnssOptions.forEach { dev -> DropdownMenuItem(text = { Text(dev.name) }, onClick = { onSelectGnss(settings.gnssSourceType, dev.id, dev.name); gnssDropdownExpanded = false }) }
                                   }
                               }
                           }
@@ -3385,35 +2876,35 @@ jobs:
                   item {
                       SettingsCard("DISPLAY, ORIENTATION & DRAG TREE") {
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                              Text("UNITS (KPH / MPH)", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
-                              Button(onClick = { onUpdateSettings { it.copy(useMph = !it.useMph) } }) { Text(if (settings.useMph) "MPH / FT" else "KM/H / M") }
+                              Text("UNITS (KPH / MPH)", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                              Button(onClick = { onUpdateSettings { it.copy(useMph = !it.useMph) } }) { Text(if (settings.useMph) "MPH / FT" else "KM/H / M", maxLines = 1) }
                           }
                           Spacer(Modifier.height(6.dp))
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                              Text("ORIENTATION", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                              Text("ORIENTATION", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                               Button(onClick = {
                                   val next = OrientationPref.entries[(settings.orientationPref.ordinal + 1) % OrientationPref.entries.size]
                                   onUpdateSettings { it.copy(orientationPref = next) }
-                              }) { Text(settings.orientationPref.label, fontSize = 11.sp) }
+                              }) { Text(settings.orientationPref.label, fontSize = 11.sp, maxLines = 1) }
                           }
                           Spacer(Modifier.height(6.dp))
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                              Text("THEME", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                              Text("THEME", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                               Button(onClick = {
                                   val next = ThemeMode.entries[(settings.themeMode.ordinal + 1) % ThemeMode.entries.size]
                                   onUpdateSettings { it.copy(themeMode = next) }
-                              }) { Text(settings.themeMode.label) }
+                              }) { Text(settings.themeMode.label, maxLines = 1) }
                           }
                           Spacer(Modifier.height(6.dp))
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                              Text("DRAG TREE MODE", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                              Text("DRAG TREE MODE", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                               Button(onClick = {
                                   val next = TreeType.entries[(settings.treeType.ordinal + 1) % TreeType.entries.size]
                                   onUpdateSettings { it.copy(treeType = next) }
-                              }) { Text(settings.treeType.label) }
+                              }) { Text(settings.treeType.label, maxLines = 1) }
                           }
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                              Text("1-FT DRAG ROLLOUT", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+                              Text("1-FT DRAG ROLLOUT", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f))
                               Switch(checked = settings.rolloutEnabled, onCheckedChange = { onUpdateSettings { s -> s.copy(rolloutEnabled = it) } })
                           }
                       }
@@ -3421,12 +2912,12 @@ jobs:
 
                   item {
                       SettingsCard("DATABASE BACKUP & RESTORE") {
-                          Button(onClick = onBackupDatabase, modifier = Modifier.fillMaxWidth()) { Text("EXPORT FULL JSON BACKUP") }
+                          Button(onClick = onBackupDatabase, modifier = Modifier.fillMaxWidth()) { Text("EXPORT FULL JSON BACKUP", maxLines = 1) }
                           Spacer(Modifier.height(6.dp))
                           OutlinedTextField(value = restoreJsonInput, onValueChange = { restoreJsonInput = it }, label = { Text("Paste Backup JSON Here") }, modifier = Modifier.fillMaxWidth())
                           Spacer(Modifier.height(6.dp))
                           Button(onClick = { if (restoreJsonInput.isNotBlank()) { onRestoreDatabase(restoreJsonInput); restoreJsonInput = "" } }, enabled = restoreJsonInput.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
-                              Text("RESTORE RUNS")
+                              Text("RESTORE RUNS", maxLines = 1)
                           }
                       }
                   }
@@ -3445,12 +2936,7 @@ jobs:
           ) {
               Column(modifier = Modifier.fillMaxSize()) {
                   Row(
-                      modifier = Modifier
-                          .fillMaxWidth()
-                          .clip(RoundedCornerShape(14.dp))
-                          .background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF0F141D))))
-                          .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(14.dp))
-                          .padding(horizontal = 12.dp, vertical = 10.dp),
+                      modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF0F141D)))).border(1.dp, Color(0xFF1E293B), RoundedCornerShape(14.dp)).padding(horizontal = 12.dp, vertical = 10.dp),
                       verticalAlignment = Alignment.CenterVertically
                   ) {
                       VehicleAvatarBadge(photoUri = activeVehicle?.photoUri ?: "", sizeDp = 46.dp, onClick = onTapCarPhoto)
@@ -3486,13 +2972,7 @@ jobs:
                               else -> Color(0xFF00E676)
                           }
                           Column(
-                              modifier = Modifier
-                                  .fillMaxWidth()
-                                  .clip(RoundedCornerShape(14.dp))
-                                  .background(MaterialTheme.colorScheme.surface)
-                                  .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
-                                  .clickable { onSelectMode(mode) }
-                                  .padding(12.dp),
+                              modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surface).border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(14.dp)).clickable { onSelectMode(mode) }.padding(12.dp),
                               verticalArrangement = Arrangement.SpaceBetween
                           ) {
                               Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -3526,14 +3006,7 @@ jobs:
           ) {
               var newTrackName by remember { mutableStateOf("") }
               LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                  item {
-                      NativeSatelliteTrackMap(
-                          currentLat = uiState.currentLat,
-                          currentLon = uiState.currentLon,
-                          activeTrack = activeTrack,
-                          modifier = Modifier.fillMaxWidth().height(240.dp)
-                      )
-                  }
+                  item { NativeSatelliteTrackMap(uiState.currentLat, uiState.currentLon, activeTrack, Modifier.fillMaxWidth().height(240.dp)) }
                   item { TrackPinControlsCard(activeTrack, uiState.currentLat, uiState.currentLon, onDropPinOnActive) }
                   item {
                       Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -3541,7 +3014,7 @@ jobs:
                           Button(onClick = {
                               onCreateTrack(if (newTrackName.isBlank()) "Custom Circuit ${tracks.size + 1}" else newTrackName.trim())
                               newTrackName = ""
-                          }) { Text("ADD TRACK") }
+                          }) { Text("ADD TRACK", maxLines = 1) }
                       }
                   }
                   items(tracks, key = { it.id }) { track ->
@@ -3552,17 +3025,15 @@ jobs:
                           verticalAlignment = Alignment.CenterVertically
                       ) {
                           Column(modifier = Modifier.weight(1f)) {
-                              Text(if (isCurrent) "${track.name} ✓" else track.name, color = if (isCurrent) Color(0xFF00E676) else Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                              Text(if (isCurrent) "${track.name} ✓" else track.name, color = if (isCurrent) Color(0xFF00E676) else Color(0xFF00B0FF), fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                               Text("Best Lap: ${formatNullableMs(track.bestLapMs)}", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
                           }
-                          Button(onClick = { onSelectTrack(track) }) { Text("RACE") }
+                          Button(onClick = { onSelectTrack(track) }) { Text("RACE", maxLines = 1) }
                           IconButton(onClick = { onDeleteTrack(track) }) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFFF5252)) }
                       }
                   }
                   if (laps.isNotEmpty()) {
-                      item {
-                          Text("SAVED LAP LOGS (${laps.size})", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-                      }
+                      item { Text("SAVED LAP LOGS (${laps.size})", color = Color.Gray, fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold) }
                       items(laps.take(20), key = { it.id }) { lap ->
                           Row(
                               modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surface).padding(10.dp),
@@ -3570,19 +3041,20 @@ jobs:
                               verticalAlignment = Alignment.CenterVertically
                           ) {
                               Column(modifier = Modifier.weight(1f)) {
-                                  Text("${lap.trackName} • Lap #${lap.lapNumber}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                  Text("S1: ${formatNullableMs(lap.sector1Ms)} | S2: ${formatNullableMs(lap.sector2Ms)} | S3: ${formatNullableMs(lap.sector3Ms)}", color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                                  Text("${lap.trackName} • Lap #${lap.lapNumber}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1)
+                                  Text("S1: ${formatNullableMs(lap.sector1Ms)} | S2: ${formatNullableMs(lap.sector2Ms)} | S3: ${formatNullableMs(lap.sector3Ms)}", color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
                               }
                               Text(formatMsToSec(lap.lapTimeMs), color = Color(0xFF00E676), fontSize = 18.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace)
-                              IconButton(onClick = { onDeleteLap(lap) }) {
-                                  Icon(Icons.Default.Delete, contentDescription = "Delete Lap", tint = Color(0xFFFF5252))
-                              }
+                              IconButton(onClick = { onDeleteLap(lap) }) { Icon(Icons.Default.Delete, contentDescription = "Delete Lap", tint = Color(0xFFFF5252)) }
                           }
                       }
                   }
               }
           }
 
+          /**
+           * Fixed Slips & Export Studio Screen (Single-line Header + Uniform Rectangular Buttons!)
+           */
           @Composable
           fun RunHistoryScreen(
               runs: List<RunRecord>,
@@ -3604,44 +3076,90 @@ jobs:
                   AlertDialog(
                       onDismissRequest = { confirmClearAll = false },
                       title = { Text("DELETE ALL LOGS?", fontWeight = FontWeight.Black) },
-                      text = { Text("Are you sure you want to permanently delete all ${runs.size} recorded run logs?") },
+                      text = { Text("Permanently delete all ${runs.size} recorded run logs?") },
                       confirmButton = {
-                          Button(
-                              onClick = { onClearAllRuns(); confirmClearAll = false },
-                              colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))
-                          ) { Text("DELETE ALL", color = Color.White, fontWeight = FontWeight.Bold) }
+                          Button(onClick = { onClearAllRuns(); confirmClearAll = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))) {
+                              Text("DELETE ALL", color = Color.White, fontWeight = FontWeight.Bold)
+                          }
                       },
-                      dismissButton = {
-                          TextButton(onClick = { confirmClearAll = false }) { Text("CANCEL") }
-                      }
+                      dismissButton = { TextButton(onClick = { confirmClearAll = false }) { Text("CANCEL") } }
                   )
               }
 
               LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                   item {
                       Column(
-                          modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF1E293B)))).padding(14.dp)
+                          modifier = Modifier
+                              .fillMaxWidth()
+                              .clip(RoundedCornerShape(14.dp))
+                              .background(Brush.horizontalGradient(listOf(Color(0xFF141B26), Color(0xFF1E293B))))
+                              .border(1.dp, Color(0xFF2E3A4E), RoundedCornerShape(14.dp))
+                              .padding(12.dp)
                       ) {
-                          Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                              Text("APEX TELEMETRY EXPORT STUDIO (${runs.size})", color = Color(0xFF00E676), fontWeight = FontWeight.Black, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
+                          Row(
+                              modifier = Modifier.fillMaxWidth(),
+                              horizontalArrangement = Arrangement.SpaceBetween,
+                              verticalAlignment = Alignment.CenterVertically
+                          ) {
+                              Text(
+                                  text = "APEX EXPORT STUDIO (${runs.size})",
+                                  color = Color(0xFF00E676),
+                                  fontWeight = FontWeight.Black,
+                                  fontSize = 13.sp,
+                                  fontFamily = FontFamily.Monospace,
+                                  maxLines = 1,
+                                  overflow = TextOverflow.Ellipsis,
+                                  modifier = Modifier.weight(1f)
+                              )
                               if (runs.isNotEmpty()) {
-                                  TextButton(onClick = { confirmClearAll = true }) {
-                                      Icon(Icons.Default.DeleteForever, contentDescription = null, tint = Color(0xFFFF5252), modifier = Modifier.size(16.dp))
+                                  Row(
+                                      modifier = Modifier
+                                          .clip(RoundedCornerShape(8.dp))
+                                          .background(Color(0xFF2A1215))
+                                          .border(1.dp, Color(0xFFFF5252).copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                          .clickable { confirmClearAll = true }
+                                          .padding(horizontal = 8.dp, vertical = 4.dp),
+                                      verticalAlignment = Alignment.CenterVertically
+                                  ) {
+                                      Icon(Icons.Default.DeleteForever, contentDescription = "Clear All", tint = Color(0xFFFF5252), modifier = Modifier.size(14.dp))
                                       Spacer(Modifier.width(4.dp))
-                                      Text("CLEAR ALL", color = Color(0xFFFF5252), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                      Text("CLEAR ALL", color = Color(0xFFFF5252), fontSize = 10.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                                   }
                               }
                           }
-                          Spacer(Modifier.height(6.dp))
+
+                          Spacer(Modifier.height(10.dp))
+
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                              Button(onClick = { primaryRun?.let { onSavePng(it) } }, enabled = primaryRun != null, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676), contentColor = Color.Black), modifier = Modifier.weight(1f)) {
-                                  Text("SAVE PNG", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                              Button(
+                                  onClick = { primaryRun?.let { onSavePng(it) } },
+                                  enabled = primaryRun != null,
+                                  shape = RoundedCornerShape(10.dp),
+                                  contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                                  colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676), contentColor = Color.Black),
+                                  modifier = Modifier.weight(1f).height(40.dp)
+                              ) {
+                                  Text("SAVE PNG", fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                               }
-                              Button(onClick = { primaryRun?.let { onShareSlip(it) } }, enabled = primaryRun != null, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00B0FF), contentColor = Color.Black), modifier = Modifier.weight(1f)) {
-                                  Text("SAVE & SHARE PDF", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                              Button(
+                                  onClick = { primaryRun?.let { onShareSlip(it) } },
+                                  enabled = primaryRun != null,
+                                  shape = RoundedCornerShape(10.dp),
+                                  contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                                  colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00B0FF), contentColor = Color.Black),
+                                  modifier = Modifier.weight(1f).height(40.dp)
+                              ) {
+                                  Text("SHARE PDF", fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                               }
-                              Button(onClick = onExportCsv, enabled = runs.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC400), contentColor = Color.Black), modifier = Modifier.weight(1f)) {
-                                  Text("EXPORT CSV", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                              Button(
+                                  onClick = onExportCsv,
+                                  enabled = runs.isNotEmpty(),
+                                  shape = RoundedCornerShape(10.dp),
+                                  contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                                  colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC400), contentColor = Color.Black),
+                                  modifier = Modifier.weight(1f).height(40.dp)
+                              ) {
+                                  Text("EXPORT CSV", fontSize = 11.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Monospace, maxLines = 1)
                               }
                           }
                       }
@@ -3657,15 +3175,15 @@ jobs:
                       ) {
                           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                               Column(modifier = Modifier.weight(1f)) {
-                                  Text("PASS #${run.id} • ${run.testMode} • ${run.vehicleName}", color = Color(0xFF00E676), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
-                                  Text(SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(run.timestampEpochMs)), color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                                  Text("PASS #${run.id} • ${run.testMode} • ${run.vehicleName}", color = Color(0xFF00E676), fontWeight = FontWeight.Bold, fontSize = 12.sp, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                  Text(SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(run.timestampEpochMs)), color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
                               }
                               Row(verticalAlignment = Alignment.CenterVertically) {
-                                  TextButton(onClick = { selectedCompareId = if (selectedCompareId == run.id) null else run.id }) {
-                                      Text(if (isCompare) "OVERLAY ON" else "COMPARE", color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                  TextButton(onClick = { selectedCompareId = if (selectedCompareId == run.id) null else run.id }, contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {
+                                      Text(if (isCompare) "OVERLAY ON" else "COMPARE", color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                                   }
-                                  IconButton(onClick = { onDeleteRun(run) }) {
-                                      Icon(Icons.Default.Delete, contentDescription = "Delete Log", tint = Color(0xFFFF5252))
+                                  IconButton(onClick = { onDeleteRun(run) }, modifier = Modifier.size(28.dp)) {
+                                      Icon(Icons.Default.Delete, contentDescription = "Delete Log", tint = Color(0xFFFF5252), modifier = Modifier.size(18.dp))
                                   }
                               }
                           }
@@ -3689,7 +3207,7 @@ jobs:
               ) {
                   Text(
                       text = if (comparisonRun != null) "TELEMETRY OVERLAY: #${primaryRun.id} (GREEN) vs #${comparisonRun.id} (CYAN)" else "VELOCITY & G-CURVE ANALYZER — PASS #${primaryRun.id}",
-                      color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace
+                      color = Color(0xFF00B0FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis
                   )
                   Spacer(Modifier.height(8.dp))
                   if (traceA.size < 2) {
@@ -3743,7 +3261,7 @@ jobs:
                           selected = selected,
                           onClick = { onNavigate(screen) },
                           icon = { Icon(icon, contentDescription = label, modifier = Modifier.size(20.dp)) },
-                          label = { Text(label, fontSize = 9.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold) },
+                          label = { Text(label, fontSize = 9.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, maxLines = 1) },
                           colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF00E676), selectedTextColor = Color(0xFF00E676), unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray, indicatorColor = Color(0xFF1E293B))
                       )
                   }
@@ -3783,7 +3301,7 @@ jobs:
                   }
                   Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                       Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFF0D1118)).padding(horizontal = 6.dp, vertical = 3.dp)) {
-                          Text("DA: ${uiState.weather.densityAltitudeFt} ft", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                          Text("DA: ${uiState.weather.densityAltitudeFt} ft", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, maxLines = 1)
                       }
                       if (showNavIconsInTopBar) {
                           IconButton(onClick = { onNavigate(AppScreen.DASHBOARDS) }, modifier = Modifier.size(24.dp)) { Icon(Icons.Default.Speed, null, tint = Color.Gray) }
@@ -3851,7 +3369,7 @@ jobs:
           @Composable
           private fun TrackPinControlsCard(activeTrack: TrackLayout?, currentLat: Double, currentLon: Double, onDropTrackPin: (Int) -> Unit) {
               Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface).padding(12.dp)) {
-                  Text("SATELLITE SECTOR PINS — ${activeTrack?.name ?: "Custom Track"}", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                  Text("SATELLITE SECTOR PINS — ${activeTrack?.name ?: "Custom Track"}", color = Color(0xFF00B0FF), fontSize = 11.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, maxLines = 1)
                   Text(String.format(Locale.US, "Live GPS: %.5f, %.5f", currentLat, currentLon), color = Color.Gray, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
                   Spacer(Modifier.height(8.dp))
                   Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -3868,7 +3386,7 @@ jobs:
               Button(
                   onClick = onClick, modifier = modifier, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                   colors = ButtonDefaults.buttonColors(containerColor = if (isSet) Color(0xFF064E3B) else Color(0xFF1E293B), contentColor = Color.White)
-              ) { Text(if (isSet) "$label ✓" else "+ $label", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) }
+              ) { Text(if (isSet) "$label ✓" else "+ $label", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1) }
           }
 
           @Composable
@@ -3917,16 +3435,16 @@ jobs:
           @Composable
           fun MetricPill(label: String, value: String) {
               Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                  Text(label, color = Color.Gray, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-                  Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                  Text(label, color = Color.Gray, fontSize = 9.sp, fontFamily = FontFamily.Monospace, maxLines = 1)
+                  Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1)
               }
           }
 
           @Composable
           fun SlipRow(label: String, value: String, highlight: Boolean = false) {
               Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                  Text(label, color = if (highlight) Color(0xFF00E676) else Color(0xFFB0BEC5), fontSize = 12.sp, fontWeight = if (highlight) FontWeight.Bold else FontWeight.Normal, fontFamily = FontFamily.Monospace)
-                  Text(value, color = if (highlight) Color(0xFF00E676) else MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                  Text(label, color = if (highlight) Color(0xFF00E676) else Color(0xFFB0BEC5), fontSize = 12.sp, fontWeight = if (highlight) FontWeight.Bold else FontWeight.Normal, fontFamily = FontFamily.Monospace, maxLines = 1)
+                  Text(value, color = if (highlight) Color(0xFF00E676) else MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1)
               }
           }
 
@@ -3946,7 +3464,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add gradle.properties settings.gradle.kts build.gradle.kts app/
           if ! git diff --staged --quiet; then
-            git commit -m "Auto-unpack Apex GPS Telemetry v4.5 project files [skip ci]"
+            git commit -m "Auto-unpack Apex GPS Telemetry v4.6 project files [skip ci]"
             git push || true
           fi
 
@@ -3962,12 +3480,12 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Apex-GPS-Telemetry-v4.5-APK
+          name: Apex-GPS-Telemetry-v4.6-APK
           path: app/build/outputs/apk/debug/app-debug.apk
 
       - name: Publish Direct APK to Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v4.5.${{ github.run_number }}
-          name: "Apex GPS Telemetry v4.5 Build #${{ github.run_number }}"
+          tag_name: v4.6.${{ github.run_number }}
+          name: "Apex GPS Telemetry v4.6 Build #${{ github.run_number }}"
           files: app/build/outputs/apk/debug/app-debug.apk

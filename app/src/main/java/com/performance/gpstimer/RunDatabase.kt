@@ -56,7 +56,8 @@ data class VehicleProfile(
     val makeModel: String,
     val weightKg: Double,
     val drivetrain: String,
-    val notes: String = ""
+    val notes: String = "",
+    @ColumnInfo(defaultValue = "''") val photoUri: String = ""
 )
 
 @Entity(tableName = "track_layouts")
@@ -134,19 +135,13 @@ interface RunDao {
     @Query("SELECT * FROM track_laps ORDER BY timestampEpochMs DESC")
     fun getAllLaps(): Flow<List<TrackLapRecord>>
 
-    @Query("SELECT * FROM track_laps ORDER BY timestampEpochMs DESC")
-    suspend fun getAllLapsSnapshot(): List<TrackLapRecord>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLap(lap: TrackLapRecord): Long
-
-    @Delete
-    suspend fun deleteLap(lap: TrackLapRecord)
 }
 
 @Database(
     entities = [RunRecord::class, VehicleProfile::class, TrackLayout::class, TrackLapRecord::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -157,62 +152,67 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         val MIGRATION_1_2 = object : Migration(1, 2) {
-  override fun migrate(db: SupportSQLiteDatabase) {
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN reactionTimeMs INTEGER DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN redLightJump INTEGER NOT NULL DEFAULT 0")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN treeType TEXT NOT NULL DEFAULT 'NONE'")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN timeHalfMileMs INTEGER DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN speedHalfMileKmh REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN timeOneMileMs INTEGER DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN speedOneMileKmh REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN brakingStartSpeedKmh REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN brakingDistanceM REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN avgBrakingG REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN vehicleProfileId INTEGER NOT NULL DEFAULT 1")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN vehicleName TEXT NOT NULL DEFAULT 'Default Vehicle'")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN ambientTempC REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN barometricPressureHpa REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN humidityPct REAL DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN densityAltitudeFt INTEGER DEFAULT NULL")
-      db.execSQL("ALTER TABLE performance_runs ADD COLUMN telemetryJson TEXT NOT NULL DEFAULT '[]'")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN reactionTimeMs INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN redLightJump INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN treeType TEXT NOT NULL DEFAULT 'NONE'")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN timeHalfMileMs INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN speedHalfMileKmh REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN timeOneMileMs INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN speedOneMileKmh REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN brakingStartSpeedKmh REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN brakingDistanceM REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN avgBrakingG REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN vehicleProfileId INTEGER NOT NULL DEFAULT 1")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN vehicleName TEXT NOT NULL DEFAULT 'Default Vehicle'")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN ambientTempC REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN barometricPressureHpa REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN humidityPct REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN densityAltitudeFt INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE performance_runs ADD COLUMN telemetryJson TEXT NOT NULL DEFAULT '[]'")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `vehicle_profiles` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `makeModel` TEXT NOT NULL, `weightKg` REAL NOT NULL, `drivetrain` TEXT NOT NULL, `notes` TEXT NOT NULL)")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `track_layouts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLat` REAL NOT NULL, `startLon` REAL NOT NULL, `sector1Lat` REAL NOT NULL, `sector1Lon` REAL NOT NULL, `sector2Lat` REAL NOT NULL, `sector2Lon` REAL NOT NULL, `finishLat` REAL NOT NULL, `finishLon` REAL NOT NULL, `isCircuit` INTEGER NOT NULL, `bestLapMs` INTEGER)")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `track_laps` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `trackName` TEXT NOT NULL, `vehicleName` TEXT NOT NULL, `timestampEpochMs` INTEGER NOT NULL, `lapNumber` INTEGER NOT NULL, `lapTimeMs` INTEGER NOT NULL, `sector1Ms` INTEGER, `sector2Ms` INTEGER, `sector3Ms` INTEGER, `maxSpeedKmh` REAL NOT NULL, `peakLatG` REAL NOT NULL, `peakBrakingG` REAL NOT NULL, `telemetryJson` TEXT NOT NULL)")
+            }
+        }
 
-      db.execSQL("CREATE TABLE IF NOT EXISTS `vehicle_profiles` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `makeModel` TEXT NOT NULL, `weightKg` REAL NOT NULL, `drivetrain` TEXT NOT NULL, `notes` TEXT NOT NULL)")
-      db.execSQL("CREATE TABLE IF NOT EXISTS `track_layouts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLat` REAL NOT NULL, `startLon` REAL NOT NULL, `sector1Lat` REAL NOT NULL, `sector1Lon` REAL NOT NULL, `sector2Lat` REAL NOT NULL, `sector2Lon` REAL NOT NULL, `finishLat` REAL NOT NULL, `finishLon` REAL NOT NULL, `isCircuit` INTEGER NOT NULL, `bestLapMs` INTEGER)")
-      db.execSQL("CREATE TABLE IF NOT EXISTS `track_laps` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `trackName` TEXT NOT NULL, `vehicleName` TEXT NOT NULL, `timestampEpochMs` INTEGER NOT NULL, `lapNumber` INTEGER NOT NULL, `lapTimeMs` INTEGER NOT NULL, `sector1Ms` INTEGER, `sector2Ms` INTEGER, `sector3Ms` INTEGER, `maxSpeedKmh` REAL NOT NULL, `peakLatG` REAL NOT NULL, `peakBrakingG` REAL NOT NULL, `telemetryJson` TEXT NOT NULL)")
-  }
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE vehicle_profiles ADD COLUMN photoUri TEXT NOT NULL DEFAULT ''")
+            }
         }
 
         fun getInstance(context: Context): AppDatabase {
-  return INSTANCE ?: synchronized(this) {
-      Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "gps_drag_timer.db")
-          .addMigrations(MIGRATION_1_2)
-          .addCallback(object : Callback() {
-              override fun onOpen(db: SupportSQLiteDatabase) {
-                  super.onOpen(db)
-                  CoroutineScope(Dispatchers.IO).launch {
-                      val dao = getInstance(context).runDao()
-                      if (dao.getAllTracksSnapshot().isEmpty()) {
-                          dao.insertTrack(
-                              TrackLayout(
-                                  name = "Wanneroo Raceway (Barbagallo)",
-                                  startLat = -31.67432,
-                                  startLon = 115.78685,
-                                  sector1Lat = -31.67108,
-                                  sector1Lon = 115.78852,
-                                  sector2Lat = -31.67610,
-                                  sector2Lon = 115.79160,
-                                  finishLat = -31.67432,
-                                  finishLon = 115.78685,
-                                  isCircuit = true
-                              )
-                          )
-                      }
-                  }
-              }
-          })
-          .build()
-          .also { INSTANCE = it }
-  }
+            return INSTANCE ?: synchronized(this) {
+                Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "gps_drag_timer.db")
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addCallback(object : Callback() {
+                        override fun onOpen(db: SupportSQLiteDatabase) {
+                            super.onOpen(db)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val dao = getInstance(context).runDao()
+                                if (dao.getAllTracksSnapshot().isEmpty()) {
+                                    dao.insertTrack(
+                                        TrackLayout(
+                                            name = "Wanneroo Raceway (Barbagallo)",
+                                            startLat = -31.67432,
+                                            startLon = 115.78685,
+                                            sector1Lat = -31.67108,
+                                            sector1Lon = 115.78852,
+                                            sector2Lat = -31.67610,
+                                            sector2Lon = 115.79160,
+                                            finishLat = -31.67432,
+                                            finishLon = 115.78685,
+                                            isCircuit = true
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    })
+                    .build()
+                    .also { INSTANCE = it }
+            }
         }
     }
 }

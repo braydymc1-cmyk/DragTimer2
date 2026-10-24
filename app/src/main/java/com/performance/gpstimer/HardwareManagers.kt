@@ -37,42 +37,38 @@ data class HardwareDeviceOption(
 object HardwareDiscoveryHelper {
     fun getBluetoothDevices(context: Context, activeAddress: String): List<HardwareDeviceOption> {
         return try {
-  val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-  val adapter: BluetoothAdapter? = bm?.adapter
-  adapter?.bondedDevices?.map { dev ->
-      val isConn = try {
-          val m = dev.javaClass.getMethod("isConnected")
-          (m.invoke(dev) as? Boolean) == true || dev.address == activeAddress
-      } catch (_: Exception) {
-          dev.address == activeAddress
-      }
-      HardwareDeviceOption(
-          id = dev.address,
-          name = dev.name ?: "BT Device (${dev.address})",
-          isCurrentlyConnected = isConn,
-          isUsb = false
-      )
-  } ?: emptyList()
-        } catch (_: SecurityException) {
-  emptyList()
-        }
+            val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+            val adapter: BluetoothAdapter? = bm?.adapter
+            adapter?.bondedDevices?.map { dev ->
+                val isConn = try {
+                    val m = dev.javaClass.getMethod("isConnected")
+                    (m.invoke(dev) as? Boolean) == true || dev.address == activeAddress
+                } catch (_: Exception) {
+                    dev.address == activeAddress
+                }
+                HardwareDeviceOption(
+                    id = dev.address,
+                    name = dev.name ?: "BT Device (${dev.address})",
+                    isCurrentlyConnected = isConn,
+                    isUsb = false
+                )
+            } ?: emptyList()
+        } catch (_: SecurityException) { emptyList() }
     }
 
     fun getUsbGnssDevices(context: Context): List<HardwareDeviceOption> {
         return try {
-  val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
-  usbManager?.deviceList?.values?.map { dev ->
-      val label = dev.productName ?: dev.manufacturerName ?: "USB Serial GNSS (${dev.deviceId})"
-      HardwareDeviceOption(
-          id = "USB:${dev.deviceName}",
-          name = "$label [USB Cable]",
-          isCurrentlyConnected = true,
-          isUsb = true
-      )
-  } ?: emptyList()
-        } catch (_: Exception) {
-  emptyList()
-        }
+            val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager
+            usbManager?.deviceList?.values?.map { dev ->
+                val label = dev.productName ?: dev.manufacturerName ?: "USB Serial GNSS (${dev.deviceId})"
+                HardwareDeviceOption(
+                    id = "USB:${dev.deviceName}",
+                    name = "$label [USB Cable]",
+                    isCurrentlyConnected = true,
+                    isUsb = true
+                )
+            } ?: emptyList()
+        } catch (_: Exception) { emptyList() }
     }
 }
 
@@ -86,23 +82,23 @@ object NmeaParser {
     ) {
         val clean = line.trim()
         if (clean.startsWith("\$GNGGA") || clean.startsWith("\$GPGGA")) {
-  val p = clean.split(",")
-  if (p.size > 9) {
-      val sats = p[7].toIntOrNull() ?: currentSats
-      val alt = p[9].toDoubleOrNull() ?: currentAlt
-      onMetaUpdate(sats, alt)
-  }
+            val p = clean.split(",")
+            if (p.size > 9) {
+                val sats = p[7].toIntOrNull() ?: currentSats
+                val alt = p[9].toDoubleOrNull() ?: currentAlt
+                onMetaUpdate(sats, alt)
+            }
         } else if (clean.startsWith("\$GNRMC") || clean.startsWith("\$GPRMC")) {
-  val p = clean.split(",")
-  if (p.size > 8 && p[2] == "A") {
-      val lat = nmeaToDecimal(p[3], p[4])
-      val lon = nmeaToDecimal(p[5], p[6])
-      val knots = p[7].toDoubleOrNull() ?: 0.0
-      val speedMps = knots * 0.514444
-      if (lat != 0.0 || lon != 0.0) {
-          onFix(lat, lon, speedMps, currentAlt, currentSats)
-      }
-  }
+            val p = clean.split(",")
+            if (p.size > 8 && p[2] == "A") {
+                val lat = nmeaToDecimal(p[3], p[4])
+                val lon = nmeaToDecimal(p[5], p[6])
+                val knots = p[7].toDoubleOrNull() ?: 0.0
+                val speedMps = knots * 0.514444
+                if (lat != 0.0 || lon != 0.0) {
+                    onFix(lat, lon, speedMps, currentAlt, currentSats)
+                }
+            }
         }
     }
 
@@ -129,73 +125,56 @@ class ObdElm327Manager(private val context: Context) {
     fun connect(macAddress: String) {
         disconnect()
         if (macAddress.isBlank()) return
-
         job = scope.launch {
-  try {
-      val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-      val adapter = bm?.adapter ?: return@launch
-      val device: BluetoothDevice = adapter.getRemoteDevice(macAddress)
-      val btSocket = device.createRfcommSocketToServiceRecord(SPP_UUID)
-      btSocket.connect()
-      socket = btSocket
+            try {
+                val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+                val device: BluetoothDevice = bm?.adapter?.getRemoteDevice(macAddress) ?: return@launch
+                val btSocket = device.createRfcommSocketToServiceRecord(SPP_UUID)
+                btSocket.connect()
+                socket = btSocket
 
-      val out = btSocket.outputStream
-      val reader = btSocket.inputStream
+                val out = btSocket.outputStream
+                val reader = btSocket.inputStream
 
-      sendCommand(out, reader, "ATZ")
-      sendCommand(out, reader, "ATE0")
-      sendCommand(out, reader, "ATL0")
-      sendCommand(out, reader, "ATS0")
-      sendCommand(out, reader, "ATH0")
-      sendCommand(out, reader, "ATSP0")
+                listOf("ATZ", "ATE0", "ATL0", "ATS0", "ATH0", "ATSP0").forEach {
+                    sendCommand(out, reader, it)
+                }
 
-      _metrics.value = _metrics.value.copy(
-          connected = true,
-          deviceName = device.name ?: macAddress
-      )
+                _metrics.value = _metrics.value.copy(connected = true, deviceName = device.name ?: macAddress)
 
-      var slowTick = 0
-      while (isActive && btSocket.isConnected) {
-          val rpmHex = sendCommand(out, reader, "010C")
-          val mapHex = sendCommand(out, reader, "010B")
-          val thrHex = sendCommand(out, reader, "0111")
-          val spdHex = sendCommand(out, reader, "010D")
+                var slowTick = 0
+                while (isActive && btSocket.isConnected) {
+                    val rpm = parsePid0C(sendCommand(out, reader, "010C")) ?: _metrics.value.rpm
+                    val mapKpa = parseSingleBytePid(sendCommand(out, reader, "010B"), "410B") ?: _metrics.value.mapKpa
+                    val boostPsi = (mapKpa - 101.325) * 0.145038
+                    val thrPct = parseSingleBytePid(sendCommand(out, reader, "0111"), "4111")?.let { (it * 100.0) / 255.0 } ?: _metrics.value.throttlePct
+                    val obdSpd = parseSingleBytePid(sendCommand(out, reader, "010D"), "410D") ?: _metrics.value.obdSpeedKmh
 
-          val rpm = parsePid0C(rpmHex) ?: _metrics.value.rpm
-          val mapKpa = parseSingleBytePid(mapHex, "410B") ?: _metrics.value.mapKpa
-          val boostPsi = (mapKpa - 101.325) * 0.145038
-          val thrPct = parseSingleBytePid(thrHex, "4111")?.let { (it * 100.0) / 255.0 }
-              ?: _metrics.value.throttlePct
-          val obdSpd = parseSingleBytePid(spdHex, "410D") ?: _metrics.value.obdSpeedKmh
+                    var ect = _metrics.value.coolantTempC
+                    var iat = _metrics.value.intakeTempC
+                    var volts = _metrics.value.batteryVolts
 
-          var ect = _metrics.value.coolantTempC
-          var iat = _metrics.value.intakeTempC
-          var volts = _metrics.value.batteryVolts
+                    if (slowTick++ % 8 == 0) {
+                        ect = parseSingleBytePid(sendCommand(out, reader, "0105"), "4105")?.minus(40) ?: ect
+                        iat = parseSingleBytePid(sendCommand(out, reader, "010F"), "410F")?.minus(40) ?: iat
+                        volts = sendCommand(out, reader, "ATRV").replace("[^0-9.]".toRegex(), "").toDoubleOrNull() ?: volts
+                    }
 
-          if (slowTick++ % 8 == 0) {
-              val ectHex = sendCommand(out, reader, "0105")
-              val iatHex = sendCommand(out, reader, "010F")
-              val vStr = sendCommand(out, reader, "ATRV")
-              ect = parseSingleBytePid(ectHex, "4105")?.minus(40) ?: ect
-              iat = parseSingleBytePid(iatHex, "410F")?.minus(40) ?: iat
-              volts = vStr.replace("[^0-9.]".toRegex(), "").toDoubleOrNull() ?: volts
-          }
-
-          _metrics.value = _metrics.value.copy(
-              connected = true,
-              rpm = rpm,
-              obdSpeedKmh = obdSpd,
-              mapKpa = mapKpa,
-              boostPsi = boostPsi,
-              throttlePct = thrPct,
-              coolantTempC = ect,
-              intakeTempC = iat,
-              batteryVolts = volts
-          )
-      }
-  } catch (_: Exception) {
-      _metrics.value = ObdLiveMetrics(connected = false, deviceName = "Disconnected")
-  }
+                    _metrics.value = _metrics.value.copy(
+                        connected = true,
+                        rpm = rpm,
+                        obdSpeedKmh = obdSpd,
+                        mapKpa = mapKpa,
+                        boostPsi = boostPsi,
+                        throttlePct = thrPct,
+                        coolantTempC = ect,
+                        intakeTempC = iat,
+                        batteryVolts = volts
+                    )
+                }
+            } catch (_: Exception) {
+                _metrics.value = ObdLiveMetrics(connected = false, deviceName = "Disconnected")
+            }
         }
     }
 
@@ -204,12 +183,12 @@ class ObdElm327Manager(private val context: Context) {
         out.flush()
         val sb = StringBuilder()
         val startMs = SystemClock.elapsedRealtime()
-        while (SystemClock.elapsedRealtime() - startMs < 220L) {
-  if (input.available() > 0) {
-      val c = input.read().toChar()
-      if (c == '>') break
-      if (!c.isWhitespace()) sb.append(c)
-  }
+        while (SystemClock.elapsedRealtime() - startMs < 200L) {
+            if (input.available() > 0) {
+                val c = input.read().toChar()
+                if (c == '>') break
+                if (!c.isWhitespace()) sb.append(c)
+            }
         }
         return sb.toString().uppercase()
     }
@@ -235,10 +214,6 @@ class ObdElm327Manager(private val context: Context) {
     }
 }
 
-/**
- * Supports BOTH Wired USB Cable GNSS (u-blox / CDC-ACM / Serial NMEA via USB OTG)
- * and Bluetooth External GNSS receivers.
- */
 @SuppressLint("MissingPermission")
 class ExternalGnssManager(
     private val context: Context,
@@ -253,111 +228,92 @@ class ExternalGnssManager(
     fun connectBluetooth(macAddress: String) {
         disconnect()
         if (macAddress.isBlank()) return
-
         job = scope.launch {
-  try {
-      val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-      val device = bm?.adapter?.getRemoteDevice(macAddress) ?: return@launch
-      val sock = device.createRfcommSocketToServiceRecord(SPP_UUID)
-      sock.connect()
-      btSocket = sock
-      isConnected = true
+            try {
+                val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+                val device = bm?.adapter?.getRemoteDevice(macAddress) ?: return@launch
+                val sock = device.createRfcommSocketToServiceRecord(SPP_UUID)
+                sock.connect()
+                btSocket = sock
+                isConnected = true
 
-      val reader = BufferedReader(InputStreamReader(sock.inputStream))
-      var lastAltM = 0.0
-      var lastSats = 12
-
-      while (isActive && sock.isConnected) {
-          val line = reader.readLine() ?: break
-          NmeaParser.parseLine(
-              line = line,
-              currentSats = lastSats,
-              currentAlt = lastAltM,
-              onFix = onExternalFix,
-              onMetaUpdate = { s, a -> lastSats = s; lastAltM = a }
-          )
-      }
-  } catch (_: Exception) {
-      isConnected = false
-  }
+                val reader = BufferedReader(InputStreamReader(sock.inputStream))
+                var lastAltM = 0.0
+                var lastSats = 12
+                while (isActive && sock.isConnected) {
+                    val line = reader.readLine() ?: break
+                    NmeaParser.parseLine(line, lastSats, lastAltM, onExternalFix) { s, a ->
+                        lastSats = s; lastAltM = a
+                    }
+                }
+            } catch (_: Exception) { isConnected = false }
         }
     }
 
     fun connectUsbCable(deviceIdStr: String) {
         disconnect()
         job = scope.launch {
-  try {
-      val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager ?: return@launch
-      val cleanName = deviceIdStr.removePrefix("USB:")
-      val device: UsbDevice = usbManager.deviceList[cleanName]
-          ?: usbManager.deviceList.values.firstOrNull()
-          ?: return@launch
+            try {
+                val usbManager = context.getSystemService(Context.USB_SERVICE) as? UsbManager ?: return@launch
+                val cleanName = deviceIdStr.removePrefix("USB:")
+                val device: UsbDevice = usbManager.deviceList[cleanName]
+                    ?: usbManager.deviceList.values.firstOrNull()
+                    ?: return@launch
 
-      if (!usbManager.hasPermission(device)) {
-          val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-          val pi = PendingIntent.getBroadcast(context, 0, Intent("com.performance.gpstimer.USB_PERMISSION"), flags)
-          usbManager.requestPermission(device, pi)
-          delay(1500L)
-          if (!usbManager.hasPermission(device)) return@launch
-      }
+                if (!usbManager.hasPermission(device)) {
+                    val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+                    val pi = PendingIntent.getBroadcast(context, 0, Intent("com.performance.gpstimer.USB_PERMISSION"), flags)
+                    usbManager.requestPermission(device, pi)
+                    delay(1500L)
+                    if (!usbManager.hasPermission(device)) return@launch
+                }
 
-      val connection = usbManager.openDevice(device) ?: return@launch
-      var targetInterface: UsbInterface? = null
-      var inEndpoint: UsbEndpoint? = null
+                val connection = usbManager.openDevice(device) ?: return@launch
+                var targetInterface: UsbInterface? = null
+                var inEndpoint: UsbEndpoint? = null
 
-      for (i in 0 until device.interfaceCount) {
-          val intf = device.getInterface(i)
-          for (e in 0 until intf.endpointCount) {
-              val ep = intf.getEndpoint(e)
-              if (ep.type == UsbConstants.USB_ENDPOINT_XFER_BULK && ep.direction == UsbConstants.USB_DIR_IN) {
-                  targetInterface = intf
-                  inEndpoint = ep
-                  break
-              }
-          }
-          if (inEndpoint != null) break
-      }
+                for (i in 0 until device.interfaceCount) {
+                    val intf = device.getInterface(i)
+                    for (e in 0 until intf.endpointCount) {
+                        val ep = intf.getEndpoint(e)
+                        if (ep.type == UsbConstants.USB_ENDPOINT_XFER_BULK && ep.direction == UsbConstants.USB_DIR_IN) {
+                            targetInterface = intf; inEndpoint = ep; break
+                        }
+                    }
+                    if (inEndpoint != null) break
+                }
 
-      val intf = targetInterface ?: return@launch
-      val epIn = inEndpoint ?: return@launch
-      connection.claimInterface(intf, true)
+                val intf = targetInterface ?: return@launch
+                val epIn = inEndpoint ?: return@launch
+                connection.claimInterface(intf, true)
 
-      // Send standard CDC-ACM line coding (115200 baud 8N1) & DTR/RTS enable
-      val lineCoding = byteArrayOf(0x00, (0xC2).toByte(), 0x01, 0x00, 0x00, 0x00, 0x08)
-      connection.controlTransfer(0x21, 0x20, 0, 0, lineCoding, lineCoding.size, 300)
-      connection.controlTransfer(0x21, 0x22, 0x03, 0, null, 0, 300)
+                val lineCoding = byteArrayOf(0x00, (0xC2).toByte(), 0x01, 0x00, 0x00, 0x00, 0x08)
+                connection.controlTransfer(0x21, 0x20, 0, 0, lineCoding, lineCoding.size, 300)
+                connection.controlTransfer(0x21, 0x22, 0x03, 0, null, 0, 300)
 
-      isConnected = true
-      val buffer = ByteArray(512)
-      val lineBuilder = StringBuilder()
-      var lastAltM = 0.0
-      var lastSats = 14
+                isConnected = true
+                val buffer = ByteArray(512)
+                val lineBuilder = StringBuilder()
+                var lastAltM = 0.0
+                var lastSats = 14
 
-      while (isActive) {
-          val n = connection.bulkTransfer(epIn, buffer, buffer.size, 500)
-          if (n > 0) {
-              val chunk = String(buffer, 0, n, Charsets.US_ASCII)
-              for (ch in chunk) {
-                  if (ch == '\n' || ch == '\r') {
-                      if (lineBuilder.isNotEmpty()) {
-                          NmeaParser.parseLine(
-                              line = lineBuilder.toString(),
-                              currentSats = lastSats,
-                              currentAlt = lastAltM,
-                              onFix = onExternalFix,
-                              onMetaUpdate = { s, a -> lastSats = s; lastAltM = a }
-                          )
-                          lineBuilder.setLength(0)
-                      }
-                  } else {
-                      lineBuilder.append(ch)
-                  }
-              }
-          }
-      }
-  } catch (_: Exception) {
-      isConnected = false
-  }
+                while (isActive) {
+                    val n = connection.bulkTransfer(epIn, buffer, buffer.size, 500)
+                    if (n > 0) {
+                        val chunk = String(buffer, 0, n, Charsets.US_ASCII)
+                        for (ch in chunk) {
+                            if (ch == '\n' || ch == '\r') {
+                                if (lineBuilder.isNotEmpty()) {
+                                    NmeaParser.parseLine(lineBuilder.toString(), lastSats, lastAltM, onExternalFix) { s, a ->
+                                        lastSats = s; lastAltM = a
+                                    }
+                                    lineBuilder.setLength(0)
+                                }
+                            } else lineBuilder.append(ch)
+                        }
+                    }
+                }
+            } catch (_: Exception) { isConnected = false }
         }
     }
 

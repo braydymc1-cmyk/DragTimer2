@@ -24,7 +24,6 @@ object TimingConstants {
     const val DIST_QUARTER_MILE_M = 402.336
     const val DIST_HALF_MILE_M = 804.672
     const val DIST_ONE_MILE_M = 1609.344
-
     const val LAUNCH_SPEED_THRESHOLD_KMH = 1.6
     const val LAUNCH_G_THRESHOLD = 0.16
 }
@@ -45,26 +44,26 @@ class ImuGpsFusionFilter {
         lateralG = (ax / 9.80665).coerceIn(-2.5, 2.5)
 
         if (lastImuNanos != 0L) {
-  val dt = (timestampNanos - lastImuNanos) / 1_000_000_000.0
-  if (dt in 0.001..0.1) {
-      if (fusedSpeedMps > 0.25 || abs(longitudinalG) > TimingConstants.LAUNCH_G_THRESHOLD) {
-          fusedSpeedMps = max(0.0, fusedSpeedMps + forwardAccelMps2 * dt)
-      }
-  }
+            val dt = (timestampNanos - lastImuNanos) / 1_000_000_000.0
+            if (dt in 0.001..0.1) {
+                if (fusedSpeedMps > 0.25 || abs(longitudinalG) > TimingConstants.LAUNCH_G_THRESHOLD) {
+                    fusedSpeedMps = max(0.0, fusedSpeedMps + forwardAccelMps2 * dt)
+                }
+            }
         }
         lastImuNanos = timestampNanos
     }
 
     fun onGpsSpeedFix(gpsSpeedMps: Double, gpsAccelG: Double, imuEnabled: Boolean): Double {
         if (!imuEnabled) {
-  fusedSpeedMps = gpsSpeedMps
-  longitudinalG = gpsAccelG
-  return gpsSpeedMps
+            fusedSpeedMps = gpsSpeedMps
+            longitudinalG = gpsAccelG
+            return gpsSpeedMps
         }
         fusedSpeedMps = if (gpsSpeedMps < 0.35 && abs(longitudinalG) < 0.12) {
-  0.0
+            0.0
         } else {
-  0.78 * gpsSpeedMps + 0.22 * fusedSpeedMps
+            0.78 * gpsSpeedMps + 0.22 * fusedSpeedMps
         }
         return fusedSpeedMps
     }
@@ -104,11 +103,11 @@ object TimingMath {
         val v0 = s1.speedMps
         val a = 2.0 * (dx - v0 * dtSec) / (dtSec * dtSec)
         val tSec = if (abs(a) < 1e-4) {
-  if (v0 > 1e-3) remDist / v0 else dtSec * (remDist / dx)
+            if (v0 > 1e-3) remDist / v0 else dtSec * (remDist / dx)
         } else {
-  val disc = max(0.0, v0 * v0 + 2.0 * a * remDist)
-  val root = (-v0 + sqrt(disc)) / a
-  if (root in 0.0..dtSec) root else dtSec * (remDist / dx)
+            val disc = max(0.0, v0 * v0 + 2.0 * a * remDist)
+            val root = (-v0 + sqrt(disc)) / a
+            if (root in 0.0..dtSec) root else dtSec * (remDist / dx)
         }
         return s1.elapsedNanos + (tSec * 1_000_000_000.0).toLong()
     }
@@ -139,7 +138,7 @@ object TimingMath {
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
         val a = sin(dLat / 2).pow(2.0) +
-      cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2.0)
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2.0)
         return 2.0 * r * atan2(sqrt(a), sqrt(1.0 - a))
     }
 

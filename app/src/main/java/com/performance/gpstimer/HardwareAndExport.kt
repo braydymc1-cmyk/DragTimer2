@@ -7,6 +7,7 @@ import android.content.*
 import android.graphics.*
 import android.graphics.pdf.PdfDocument
 import android.hardware.usb.*
+import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
 import android.widget.Toast
@@ -213,14 +214,15 @@ object ExportEngine {
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         canvas.drawColor(Color.parseColor("#F5F3EB"))
-        val pTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD); textSize = 32f; textAlign = Paint.Align.CENTER }
+        val pTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD); textSize = 36f; textAlign = Paint.Align.CENTER }
         val pSub = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.DKGRAY; typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL); textSize = 20f; textAlign = Paint.Align.CENTER }
         val pLbl = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD); textSize = 24f }
         val pVal = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD); textSize = 25f; textAlign = Paint.Align.RIGHT }
         val pDash = Paint().apply { color = Color.GRAY; strokeWidth = 2f }
 
-        var y = 62f
-        canvas.drawText("APEX MOTORSPORT RACEWAY", w / 2f, y, pTitle); y += 34f
+        var y = 65f
+        // Updated header per user request: APEX TELEMETRY
+        canvas.drawText("APEX TELEMETRY", w / 2f, y, pTitle); y += 34f
         canvas.drawText(SimpleDateFormat("dd MMM yyyy  HH:mm:ss", Locale.US).format(Date(run.timestampEpochMs)), w / 2f, y, pSub); y += 30f
         canvas.drawText("VEHICLE: ${run.vehicleName.uppercase()}", w / 2f, y, pSub); y += 26f
         canvas.drawLine(40f, y, w - 40f, y, pDash)
@@ -256,6 +258,8 @@ object ExportEngine {
         row("SLOPE GRADE", String.format(Locale.US, "%.2f%% (%s)", run.slopePercent, if (run.isValidSlope) "VALID" else "INVALID"))
         row("PEAK G / GNSS", String.format(Locale.US, "%.2f G | %.1f Hz", run.peakG, run.gpsHz))
         if (run.densityAltitudeFt != null) row("DENSITY ALT", "${run.densityAltitudeFt} ft")
+        y += 50f
+        canvas.drawText("*** APEX TELEMETRY OFFICIAL RECORD ***", w / 2f, y, pSub)
         return bmp
     }
 
@@ -263,7 +267,7 @@ object ExportEngine {
         val bmp = renderTimeslipBitmap(run, useMph)
         try {
             val values = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, "Apex_Timeslip_Run_${run.id}.png")
+                put(MediaStore.Images.Media.DISPLAY_NAME, "Apex_Telemetry_Run_${run.id}.png")
                 put(MediaStore.Images.Media.MIME_TYPE, "image/png")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ApexTelemetry")
             }
@@ -275,23 +279,52 @@ object ExportEngine {
         } catch (_: Exception) {}
     }
 
+    /**
+     * Generates a real PDF file, saves it into the phone's Downloads folder via MediaStore,
+     * and launches the Android Share chooser with the actual PDF attachment.
+     */
     fun shareTimeslipPdf(context: Context, run: RunRecord, useMph: Boolean) {
-        saveTimeslipPngToGallery(context, run, useMph)
+        val bmp = renderTimeslipBitmap(run, useMph)
+        val pdf = PdfDocument()
+        val page = pdf.startPage(PdfDocument.PageInfo.Builder(bmp.width, bmp.height, 1).create())
+        page.canvas.drawBitmap(bmp, 0f, 0f, null)
+        pdf.finishPage(page)
+
+        var sharedUri: Uri? = null
         try {
-            val bmp = renderTimeslipBitmap(run, useMph)
-            val pdf = PdfDocument()
-            val page = pdf.startPage(PdfDocument.PageInfo.Builder(bmp.width, bmp.height, 1).create())
-            page.canvas.drawBitmap(bmp, 0f, 0f, null)
-            pdf.finishPage(page)
-            FileOutputStream(File(context.cacheDir, "Timeslip_Run_${run.id}.pdf")).use { pdf.writeTo(it) }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val values = ContentValues().apply {
+                    put(MediaStore.Downloads.DISPLAY_NAME, "Apex_Telemetry_Run_${run.id}.pdf")
+                    put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
+                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
+                val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                if (uri != null) {
+                    context.contentResolver.openOutputStream(uri)?.use { pdf.writeTo(it) }
+                    sharedUri = uri
+                    Toast.makeText(context, "Saved PDF to Downloads/Apex_Telemetry_Run_${run.id}.pdf!", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(dir, "Apex_Telemetry_Run_${run.id}.pdf")
+                FileOutputStream(file).use { pdf.writeTo(it) }
+                Toast.makeText(context, "Saved PDF to Downloads!", Toast.LENGTH_LONG).show()
+            }
+        } catch (_: Exception) {
+            Toast.makeText(context, "Error writing PDF", Toast.LENGTH_SHORT).show()
+        } finally {
             pdf.close()
-        } catch (_: Exception) {}
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "Apex Timeslip - ${run.vehicleName}")
-            putExtra(Intent.EXTRA_TEXT, "Apex Pass #${run.id} (${run.testMode} - ${run.vehicleName}): ${String.format(Locale.US, "%.3fs", run.primaryTimeMs / 1000.0)} @ ${UnitConverter.formatSpeed(run.trapSpeedKmh, useMph)}")
         }
-        context.startActivity(Intent.createChooser(send, "Share Official Timeslip"))
+
+        if (sharedUri != null) {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/pdf"
+                putExtra(Intent.EXTRA_STREAM, sharedUri)
+                putExtra(Intent.EXTRA_SUBJECT, "Apex Telemetry Official Timeslip #${run.id}")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(shareIntent, "Share Official Timeslip PDF"))
+        }
     }
 
     fun shareRefinedCsv(context: Context, runs: List<RunRecord>, useMph: Boolean) {

@@ -23,7 +23,7 @@ enum class TestMode(val title: String, val subtitle: String, val badge: String) 
     ROLL_100_200("100 - 200 / 60 - 130", "Flying highway roll interval", "ROLL"),
     BRAKE_100_0("100 - 0 BRAKING", "Stopping distance, time & peak G", "BRAKE"),
     CUSTOM_SPEED("CUSTOM SPEED", "Set custom start & target speeds on screen", "CUSTOM"),
-    TRACK_CIRCUIT("SATELLITE TRACK", "Live satellite map, sector pins & lap timer", "TRACK")
+    TRACK_CIRCUIT("SATELLITE TRACK", "Draggable satellite map, pins & lap timer", "TRACK")
 }
 
 enum class TreeType(val label: String, val amberIntervalMs: Long, val isSimultaneous: Boolean) {
@@ -61,9 +61,9 @@ enum class OrientationPref(val label: String) {
 }
 
 enum class DashStyle(val label: String) {
-    GT3_MOTEC("GT3 Pro DDU"),
-    ANALOG_TWIN("Twin-Needle Analog"),
-    CYBER_STREET("JDM Cyber Bar"),
+    GT3_MOTEC("GT3 Carbon"),
+    ANALOG_TWIN("Pro Analog"),
+    CYBER_STREET("Cyber Neon"),
     CUSTOM_6_SLOT("Custom 6-Slot")
 }
 
@@ -224,10 +224,20 @@ object WeatherCalculator {
     }
 }
 
-class SettingsRepository(context: Context) {
+/**
+ * Process-Wide Singleton Settings Repository so UI, Track Mode, and Service are always 100% in sync.
+ */
+class SettingsRepository private constructor(context: Context) {
     private val prefs = context.getSharedPreferences("apex_telemetry_prefs", Context.MODE_PRIVATE)
     private val _settings = MutableStateFlow(load())
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
+
+    companion object {
+        @Volatile private var INSTANCE: SettingsRepository? = null
+        fun getInstance(context: Context): SettingsRepository = INSTANCE ?: synchronized(this) {
+            SettingsRepository(context.applicationContext).also { INSTANCE = it }
+        }
+    }
 
     private fun load(): AppSettings {
         val slotStr = prefs.getString("customDashSlots", "") ?: ""
@@ -510,6 +520,8 @@ interface RunDao {
     suspend fun insertRun(run: RunRecord): Long
     @Delete
     suspend fun deleteRun(run: RunRecord)
+    @Query("DELETE FROM performance_runs")
+    suspend fun clearAllRuns()
 
     @Query("SELECT * FROM vehicle_profiles ORDER BY id ASC")
     fun getAllVehicles(): Flow<List<VehicleProfile>>
@@ -533,6 +545,8 @@ interface RunDao {
     fun getAllLaps(): Flow<List<TrackLapRecord>>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLap(lap: TrackLapRecord): Long
+    @Delete
+    suspend fun deleteLap(lap: TrackLapRecord)
 }
 
 @Database(entities = [RunRecord::class, VehicleProfile::class, TrackLayout::class, TrackLapRecord::class], version = 3, exportSchema = false)

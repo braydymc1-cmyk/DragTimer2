@@ -4,19 +4,16 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
-
 android {
     namespace = "com.performance.gpstimer"
     compileSdk = 34
-
     defaultConfig {
         applicationId = "com.performance.gpstimer"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "3.0.0"
+        versionCode = 5
+        versionName = "4.0.0"
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -24,7 +21,6 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
 }
-
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     implementation(composeBom)
@@ -36,7 +32,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")

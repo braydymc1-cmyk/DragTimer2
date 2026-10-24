@@ -15,7 +15,9 @@
 
     <application
         android:allowBackup="true"
-        android:label="Apex GPS Telemetry"
+        android:label="Apex Telemetry"
+        android:icon="@drawable/ic_launcher_apex"
+        android:roundIcon="@drawable/ic_launcher_apex"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
